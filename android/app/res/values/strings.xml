@@ -16,4 +16,5 @@
     <string name="connecting">Connecting…</string>
     <string name="action_stop">Stop</string>
     <string name="upd_permission">Allow this app to install updates</string>
+    <string name="app_name" translatable="false">TuneDeck</string>
 </resources>

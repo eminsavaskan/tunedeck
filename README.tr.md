@@ -1,4 +1,4 @@
-# YT Music Remote
+# TuneDeck
 
 > Türkçe doküman. İngilizce (ana) sürüm: [README.md](README.md)
 

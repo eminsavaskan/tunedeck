@@ -471,7 +471,7 @@ code{{display:inline-block;margin-top:18px;background:#17171d;border:1px solid #
 border-radius:10px;font-size:15px;color:#fff}}
 a{{display:inline-block;margin-top:16px;color:#ff2d55;font-size:13px;text-decoration:none}}
 </style></head><body><div>
-<h1>YT Music Remote</h1>
+<h1>TuneDeck</h1>
 <p>Telefonun aynı Wi-Fi ağında olmalı.<br>QR'ı okut veya adresi tarayıcıya yaz, sonra<br>
 tarayıcı menüsünden <b>“Ana ekrana ekle”</b> de.</p>
 <img src="/qr.png" alt="QR">
@@ -633,7 +633,7 @@ async def app_apk():
 @app.get("/manifest.webmanifest")
 async def manifest():
     return JSONResponse({
-        "name": "YT Music Remote", "short_name": "YTM Remote",
+        "name": "TuneDeck", "short_name": "TuneDeck",
         "start_url": "/", "scope": "/", "display": "standalone", "orientation": "portrait",
         "background_color": "#08080b", "theme_color": "#08080b",
         "icons": [

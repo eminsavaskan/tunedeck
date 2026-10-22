@@ -8,7 +8,7 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="apple-touch-icon" href="/icon-192.png">
 <link rel="icon" href="/icon-192.png">
-<title>YT Music Remote</title>
+<title>TuneDeck</title>
 <style>
 :root{
   --bg:#030303; --surface:#1c1c1c; --surface2:#282828; --line:#2f2f2f;
@@ -27,7 +27,7 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
 #topbar{flex:none;height:52px;display:flex;align-items:center;gap:10px;padding:0 14px;
   background:var(--bg);position:relative;z-index:5}
 #topbar .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16.5px;letter-spacing:-.2px}
-#topbar .logo .badge{width:26px;height:26px;border-radius:50%;background:var(--red);display:grid;place-items:center;flex:none}
+#topbar .logo .badge{width:26px;height:26px;border-radius:7px;background:none;display:grid;place-items:center;flex:none}
 #topbar .logo .badge svg{width:13px;height:13px;fill:#fff}
 #topbar .spacer{flex:1}
 #topbar .conn{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2)}
@@ -224,7 +224,7 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
 
 <div id="app">
   <div id="topbar">
-    <div class="logo"><span class="badge"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>YT Music</div>
+    <div class="logo"><span class="badge"><svg viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="lg-badge" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7C3AED"/><stop offset="1" stop-color="#EC4899"/></linearGradient></defs><rect width="24" height="24" rx="6.5" fill="url(#lg-badge)"/><path d="M9.4 7.4v9.2l7.3-4.6z" fill="#fff"/><path d="M16.6 6.4a6.4 6.4 0 0 1 1.8 2.9" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"/></svg></span>TuneDeck</div>
     <div class="spacer"></div>
     <div class="conn" id="conn"><span class="dot"></span><span id="connText">…</span></div>
     <button class="ibtn" id="gear" aria-label="Ayarlar"><svg class="ic" viewBox="0 0 24 24"><use href="#i-gear"/></svg></button>

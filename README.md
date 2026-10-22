@@ -1,6 +1,6 @@
-# YT Music Remote
+# TuneDeck
 
-**Spotify Connect for YouTube Music** — but running on your own computer, in your own network, with no
+**TuneDeck** — Spotify Connect for YouTube Music — but running on your own computer, in your own network, with no
 account linking and no cloud in between.
 
 Your computer plays the music. Your phone becomes the remote: play/pause, next/previous, volume, seek,
@@ -429,6 +429,18 @@ nothing returns a 500 or hangs. Both suites exit non-zero on failure, so they ca
 
 Issues and PRs welcome. When reporting a broken control, include your YouTube Music version, the
 `/api/state` output and what the element looks like now — that usually makes the fix a one-liner.
+
+## Renaming / rebranding
+
+The name lives in four places (the package id `com.emin.ytmremote` must **not** change — updates are tied
+to it):
+
+| Where | What |
+|---|---|
+| `android/app/res/values/strings.xml` | `app_name` → launcher + task switcher label |
+| `ui.html` | top bar brand text and the inline logo mark |
+| `bridge.py` | `manifest.webmanifest` name/short_name, `/setup` heading |
+| `tools/make-icon.py` | icon artwork (run it to regenerate every PNG) |
 
 ## License
 
