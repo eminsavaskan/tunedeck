@@ -38,3 +38,4 @@ onizleme.png
 android/build/
 *.idsig
 apk-version.json
+version.json
