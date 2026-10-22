@@ -1,14 +1,19 @@
 # TuneDeck
 
-**TuneDeck** — Spotify Connect for YouTube Music — but running on your own computer, in your own network, with no
-account linking and no cloud in between.
+YouTube Music doesn't do Spotify Connect. You can't pick up your phone and pause whatever is playing on
+the computer, and people have been asking for it in the feedback form for years.
 
-Your computer plays the music. Your phone becomes the remote: play/pause, next/previous, volume, seek,
-search, playlists and your library. With the Android app you also get a media notification, lock-screen
-controls and a home-screen widget.
+So I wrote one. The PC plays the music, the phone controls it over your home Wi-Fi: play and pause, next
+and previous, volume, scrubbing, search, playlists, your library. The Android app adds a media
+notification, lock screen controls and a home screen widget, so you can skip a track without unlocking
+the phone.
 
-> Unofficial, not affiliated with Google. It drives the YouTube Music UI in your own logged-in client —
-> no DRM bypass, no downloading. See [Limitations](#limitations) before installing.
+No account linking, no cloud, no API keys. It drives the YouTube Music client you are already signed into,
+on your own machine, which is why your likes, history and recommendations stay intact.
+
+Unofficial and not affiliated with Google. It doesn't bypass DRM and doesn't download anything, but it
+does automate a Google service, so use your judgement. [Limitations](#limitations) is worth a read before
+you install it.
 
 ![Screenshot](docs/screenshot.png)
 
@@ -61,14 +66,13 @@ beyond what YouTube Music itself needs.
                                     └──────────────────────────┘
 ```
 
-`bridge.py` is a small web server. It attaches to the player through the Chromium DevTools Protocol and
-presses the *real* buttons — it does not re-implement the player. That is why your account, likes,
-history, recommendations and playlists all behave exactly as if you clicked them yourself, and why
-changing tracks never interrupts playback.
+`bridge.py` is a small web server. It connects to the player over the Chromium DevTools Protocol and
+clicks the same buttons you would click. Nothing is reimplemented, so your account, likes, history and
+recommendations behave exactly as they always do, and switching tracks never interrupts playback.
 
-**Why not the official API?** There isn't one. YouTube Music has no Connect / remote-control API, and the
-Electron builds that used to expose a "companion server" (th-ch `youtube-music` v3, `pear-desktop`)
-removed it. This project fills that gap without patching the app.
+There is no official API to plug into. The Electron builds that used to expose a "companion server"
+(th-ch `youtube-music` v3, `pear-desktop`) dropped it a while back. This fills that gap without patching
+the app itself.
 
 ---
 
@@ -117,7 +121,7 @@ quotes intact:
 
 Then close the player completely (also from the tray) and open it from that shortcut.
 
-**Browser instead of the app:** skip this step — see [Browser mode](#browser-mode).
+**Browser instead of the app:** skip this step (see [Browser mode](#browser-mode)).
 
 Not sure it worked? `http://127.0.0.1:9223/json/version` should return JSON in the browser. If it does
 not, the player was started without the flag.
@@ -134,7 +138,7 @@ It prints something like:
 YT Music Remote  ->  http://192.168.1.50:8777
 ```
 
-Leave this window open. When Windows asks about the firewall, **allow it on private networks** — otherwise
+Leave this window open. When Windows asks about the firewall, **allow it on private networks**, otherwise
 your phone cannot connect.
 
 ### 7. Start the player (any time)
@@ -179,21 +183,21 @@ your firewall (on Ubuntu: `sudo ufw allow 8777/tcp`).
 ## Set up your phone
 
 1. Connect the phone to the **same Wi-Fi** as the computer. (Guest networks and “AP isolation” block this.)
-2. Open the URL the bridge printed — e.g. `http://192.168.1.50:8777`.
+2. Open the URL the bridge printed, for example `http://192.168.1.50:8777`.
 3. Browser menu → **Add to home screen**. It now opens full-screen like an app.
 4. Point the phone at the computer and tap play. Done.
 
 The bridge also serves a QR page: open `http://<computer-ip>:8777/setup` on the computer and scan it with
 the phone.
 
-**Multiple phones work** — every device that opens the URL controls the same player.
+**Multiple phones work.** Every device that opens the URL controls the same player.
 
 ## Install the Android app (APK)
 
 The APK is the same interface, wrapped with Android integration (persistent notification, lock-screen
 controls, widget, boot start).
 
-1. On the phone open `http://<computer-ip>:8777/app.apk` — or scan the QR code from
+1. On the phone open `http://<computer-ip>:8777/app.apk`, or scan the QR code from
    `http://<computer-ip>:8777/setup` on the computer.
 2. When Android warns about unknown apps, allow your browser to install apps (one-time setting).
 3. Open the installed **YT Music Remote** app.
@@ -203,9 +207,9 @@ controls, widget, boot start).
    *Settings → Notifications → Advanced → Media player* and *Lock screen → Media*. If the official YouTube
    Music app also has no lock-screen player on your phone, the cause is that device setting, not this app.
 
-The APK is signed with a debug key and is not on Google Play — sideloading is the intended method.
+The APK is signed with a debug key and is not on Google Play. Sideloading is the intended method.
 
-### Auto-update — how it works for people who just downloaded it
+### How updates work
 
 Install once from **Releases** (or from your own bridge). After that the app keeps itself current.
 
@@ -219,11 +223,11 @@ It asks two places, in this order:
 - On start (at most once per 12 h) the app compares the published **version code** with its own.
 - If it is newer, **Settings → Update** shows `v2.3 ready`; one tap downloads the APK and hands it to
   Android's package installer.
-- Android always shows its own **Install / Cancel** dialog — no app can install silently, by design.
+- Android always shows its own **Install / Cancel** dialog. No app can install silently, by design.
 - The GitHub check needs the repo name. It comes from (first match wins): `settings.json → "github"` on
   the bridge, the APK's baked-in `Api.DEFAULT_UPDATE_REPO`, or a preference set by the app. Releases built
   by CI bake in `${{ github.repository }}` automatically, so a downloaded APK already knows where to look
-  — no bridge or PC needed.
+. No bridge or PC needed.
 - Unauthenticated GitHub API allows 60 requests/hour per IP; one check per device per 12 h is far below
   that, and failures are silent (the row simply says “up to date”).
 
@@ -240,7 +244,7 @@ The CI workflow builds the APK on the tag, writes `apk-version.json`, and attach
 release. Every installed app then sees `versionCode 15 > 14` and offers the update within 12 hours
 (or immediately: open Settings → Update and tap it).
 
-No bridge, no PC, no re-download, no reinstall by hand — one tap, once per release.
+You don't need the bridge, the PC or a manual reinstall: one tap, once per release.
 
 ---
 
@@ -279,7 +283,7 @@ Behaviour you should know:
 | `Port 8777 already in use` | bridge already running | use the running one, or `YTM_PORT=8778 python bridge.py` |
 | Titles/artwork empty while music plays | YouTube Music was reloaded | wait a few seconds, state re-syncs automatically |
 
-Still stuck? Open the setup page (`/setup`) or check `bridge.log` — the bridge logs every failure.
+Still stuck? Open the setup page (`/setup`) or check `bridge.log`. The bridge logs every failure.
 
 ---
 
@@ -302,11 +306,11 @@ at all.
 
 **Is it safe to expose?**
 The bridge listens on your LAN only and has no cloud component. Anyone on your Wi-Fi can control the
-player — that is the point. If you don't want that, set a `token` (see [Configuration](#configuration)).
+player. That is the point. If you don't want that, set a `token` (see [Configuration](#configuration)).
 
 **Will a YouTube Music update break it?**
 Possibly. Everything is driven through the page's DOM; a redesign can break selectors. Fixes are usually
-small — that is the cost of an app with no public API.
+small. That is the cost of an app with no public API.
 
 ---
 
@@ -347,7 +351,7 @@ YTM_BROWSER="C:/Program Files/BraveSoftware/Brave-Browser/Application/brave.exe"
 
 ## HTTP API
 
-Everything the apps use is a plain HTTP endpoint — good enough to script your own remote (Stream Deck,
+Everything the apps use is a plain HTTP endpoint, good enough to script your own remote (Stream Deck,
 Home Assistant, a macro keyboard…).
 
 | Method & path | Body | Returns |
@@ -378,7 +382,7 @@ curl -s -X POST http://192.168.1.50:8777/api/search -H 'content-type: applicatio
 
 ## Build the APK yourself
 
-No Gradle, no Android Studio, no AndroidX — just the SDK tools.
+No Gradle, no Android Studio, no AndroidX. Just the SDK tools.
 
 ```bash
 cd android
@@ -416,11 +420,11 @@ nothing returns a 500 or hangs. Both suites exit non-zero on failure, so they ca
 ## Limitations
 
 - **DOM driven.** Playback, search and navigation use YouTube Music's own elements (`#progress-bar`,
-  `.title`, `ytmusic-*`). A Google redesign can break it — fixes are usually a few selectors.
+  `.title`, `ytmusic-*`). A Google redesign can break it. Fixes are usually a few selectors.
 - **One player per bridge.** The phone remote controls the machine running `bridge.py`.
-- **Phone is the remote, not the player** — audio always comes from the computer.
+- **Phone is the remote, not the player.** Audio always comes from the computer.
 - **Unofficial.** No DRM circumvention, no downloading, no API keys; it automates the client you are
-  already logged into. Automating a Google service can violate its terms — your call.
+  already logged into. Automating a Google service can violate its terms. Your call.
 - **Debug-signed APK.** Fine for sideloading, not for a store.
 - **Some OEMs** (Samsung, Xiaomi, Huawei) hide media cards by default. The app cannot override a system
   setting; the official YouTube Music app would be hidden the same way.
@@ -428,11 +432,11 @@ nothing returns a 500 or hangs. Both suites exit non-zero on failure, so they ca
 ## Contributing
 
 Issues and PRs welcome. When reporting a broken control, include your YouTube Music version, the
-`/api/state` output and what the element looks like now — that usually makes the fix a one-liner.
+`/api/state` output and what the element looks like now. That usually makes the fix a one-liner.
 
 ## Renaming / rebranding
 
-The name lives in four places (the package id `com.emin.ytmremote` must **not** change — updates are tied
+The name lives in four places (the package id `com.emin.ytmremote` must **not** change, because updates are tied
 to it):
 
 | Where | What |
@@ -444,5 +448,5 @@ to it):
 
 ## License
 
-MIT — see [LICENSE](LICENSE). “YouTube”, “YouTube Music” and the play logo are trademarks of Google LLC.
+MIT, see [LICENSE](LICENSE). "YouTube", "YouTube Music" and the play logo are trademarks of Google LLC.
 This project is not affiliated with, endorsed by, or supported by Google.

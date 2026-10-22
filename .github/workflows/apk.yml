@@ -50,7 +50,8 @@ jobs:
             ytm-remote.apk
             apk-version.json
           body: |
-            Install: download `ytm-remote.apk` below (Android will ask to allow installs from this source).
+            Download `ytm-remote.apk` and install it. Android will ask you to allow installs from this
+            source the first time.
 
-            Existing installs update themselves: the app checks the latest release every 12 hours and
-            shows **Settings → Update** when a newer version code is published.
+            Already have it? The app checks this page twice a day and offers the update under
+            Settings, Update. No need to download anything by hand again.
