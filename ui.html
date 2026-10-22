@@ -740,12 +740,19 @@ $('launchBtn').onclick = async () => {
 
 /* ---------------- guncelleme ---------------- */
 let updInfo = null;
+let updManual = false;
 window.__upd = function(r){
-  updInfo = r || null;
+  updInfo = (r && r.ok) ? r : null;
   const el = $('updState');
   if(!el) return;
-  if(!r || !r.ok){ el.textContent = t('upd_failed'); return; }
+  if(!r || !r.ok){
+    // otomatik kontrolde sessiz kal; elle denendiyse hatayi goster
+    el.textContent = updManual ? t('upd_failed') : '—';
+    updManual = false;
+    return;
+  }
   el.textContent = r.newer ? t('upd_available', {v: r.version}) : t('upd_latest', {v: r.current});
+  updManual = false;
 };
 window.__updState = function(st, err){
   const el = $('updState');
@@ -759,8 +766,9 @@ $('rowUpd').onclick = () => {
   if(!hasNative){ toast(t('native_only')); return; }
   if(!Native.checkUpdate){ $('updState').textContent = '—'; return; }   // eski APK
   if(updInfo && updInfo.newer && Native.installUpdate){ Native.installUpdate(); return; }
+  updManual = true;
   $('updState').textContent = t('upd_checking');
-  try { (Native.forceCheckUpdate || Native.checkUpdate).call(Native); } catch(e){ toast(t('upd_failed')); }
+  try { (Native.forceCheckUpdate || Native.checkUpdate).call(Native); } catch(e){ updManual = false; toast(t('upd_failed')); }
 };
 if(hasNative){
   setTimeout(() => { try { Native.checkUpdate(); } catch(e){} }, 2500);

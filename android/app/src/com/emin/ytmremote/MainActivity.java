@@ -293,7 +293,7 @@ public class MainActivity extends Activity {
                 o.put("server", Api.base(MainActivity.this));
                 o.put("notifMode", Api.prefs(MainActivity.this).getString("notif_mode", "media"));
                 o.put("serviceRunning", RemoteService.running);
-                o.put("version", "2.3");
+                o.put("version", "2.4");
                 o.put("sdk", Build.VERSION.SDK_INT);
                 o.put("os", Build.VERSION.RELEASE);
                 o.put("model", Build.MANUFACTURER + " " + Build.MODEL);
@@ -410,6 +410,20 @@ public class MainActivity extends Activity {
             if (url == null || url.isEmpty()) {
                 runJs("window.__updState && window.__updState('error','no-url')");
                 return;
+            }
+            // ilk kurulumda "bilinmeyen kaynak" izni gerekebilir
+            if (Build.VERSION.SDK_INT >= 26) {
+                try {
+                    if (!getPackageManager().canRequestPackageInstalls()) {
+                        toast(getString(R.string.upd_permission));
+                        startActivity(new Intent(
+                                android.provider.Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                                android.net.Uri.parse("package:" + getPackageName())));
+                        runJs("window.__updState && window.__updState('error','permission')");
+                        return;
+                    }
+                } catch (Throwable ignored) {
+                }
             }
             runJs("window.__updState && window.__updState('downloading')");
             new Thread(() -> {

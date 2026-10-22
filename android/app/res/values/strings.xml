@@ -15,4 +15,5 @@
     <string name="save_try">Save &amp; try</string>
     <string name="connecting">Connecting…</string>
     <string name="action_stop">Stop</string>
+    <string name="upd_permission">Allow this app to install updates</string>
 </resources>

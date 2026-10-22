@@ -176,6 +176,7 @@ public final class Updater {
 
         JSONObject b = bridgeMeta(c);
         if (b != null && b.optBoolean("ok", false)) {
+            info.ok = true;                 // kopru cevap verdi: sonuc gecerli
             int bcode = b.optInt("code", 0);
             if (bcode > mine) {
                 info.ok = true;

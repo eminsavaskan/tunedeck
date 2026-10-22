@@ -15,4 +15,5 @@
     <string name="save_try">Kaydet ve dene</string>
     <string name="connecting">Bağlanıyor…</string>
     <string name="action_stop">Kapat</string>
+    <string name="upd_permission">Güncelleme kurulumuna izin ver</string>
 </resources>
