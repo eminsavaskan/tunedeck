@@ -15,7 +15,9 @@ Unofficial and not affiliated with Google. It doesn't bypass DRM and doesn't dow
 does automate a Google service, so use your judgement. [Limitations](#limitations) is worth a read before
 you install it.
 
-![Screenshot](docs/screenshot.png)
+<p align="center">
+  <img src="docs/screenshot.png" width="300" alt="TuneDeck controlling YouTube Music from a phone">
+</p>
 
 ---
 
