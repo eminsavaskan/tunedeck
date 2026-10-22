@@ -205,17 +205,42 @@ controls, widget, boot start).
 
 The APK is signed with a debug key and is not on Google Play — sideloading is the intended method.
 
-### Auto-update
+### Auto-update — how it works for people who just downloaded it
 
-The bridge publishes the APK it serves at `GET /api/version` (version, version code, size, sha256,
-build time). The installed app checks it on start and shows **Settings → Update → “v2.3 ready”**; tapping
-it downloads the APK and hands it to Android's package installer.
+Install once from **Releases** (or from your own bridge). After that the app keeps itself current.
 
-- Android always shows its own **Install / Cancel** dialog — an app cannot install silently, and that is
-  a feature, not a bug.
-- Works because the bridge serves the APK: replace `ytm-remote.apk` on the computer (or run
-  `android/build.sh`, which also writes `apk-version.json`) and every phone on the network can update.
-- Nothing is fetched from the internet, so it keeps working on a LAN with no WAN access.
+It asks two places, in this order:
+
+| # | Channel | Used when | Source of truth |
+|---|---|---|---|
+| 1 | **Your bridge** | the phone is on the same Wi-Fi as a running bridge | `GET /api/version` on the PC |
+| 2 | **GitHub Releases** | always (fallback, and the normal path for everyone else) | `https://api.github.com/repos/<owner>/<repo>/releases/latest` |
+
+- On start (at most once per 12 h) the app compares the published **version code** with its own.
+- If it is newer, **Settings → Update** shows `v2.3 ready`; one tap downloads the APK and hands it to
+  Android's package installer.
+- Android always shows its own **Install / Cancel** dialog — no app can install silently, by design.
+- The GitHub check needs the repo name. It comes from (first match wins): `settings.json → "github"` on
+  the bridge, the APK's baked-in `Api.DEFAULT_UPDATE_REPO`, or a preference set by the app. Releases built
+  by CI bake in `${{ github.repository }}` automatically, so a downloaded APK already knows where to look
+  — no bridge or PC needed.
+- Unauthenticated GitHub API allows 60 requests/hour per IP; one check per device per 12 h is far below
+  that, and failures are silent (the row simply says “up to date”).
+
+**Publishing an update (maintainer):**
+
+```bash
+# 1. bump the version in android/app/AndroidManifest.xml
+#    versionCode="15"  versionName="2.4"      <- versionCode MUST increase
+# 2. commit, then tag and push
+git tag v2.4 && git push origin v2.4
+```
+
+The CI workflow builds the APK on the tag, writes `apk-version.json`, and attaches both to the GitHub
+release. Every installed app then sees `versionCode 15 > 14` and offers the update within 12 hours
+(or immediately: open Settings → Update and tap it).
+
+No bridge, no PC, no re-download, no reinstall by hand — one tap, once per release.
 
 ---
 

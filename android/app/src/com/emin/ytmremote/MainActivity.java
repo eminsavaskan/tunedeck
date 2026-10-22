@@ -293,7 +293,7 @@ public class MainActivity extends Activity {
                 o.put("server", Api.base(MainActivity.this));
                 o.put("notifMode", Api.prefs(MainActivity.this).getString("notif_mode", "media"));
                 o.put("serviceRunning", RemoteService.running);
-                o.put("version", "2.2");
+                o.put("version", "2.3");
                 o.put("sdk", Build.VERSION.SDK_INT);
                 o.put("os", Build.VERSION.RELEASE);
                 o.put("model", Build.MANUFACTURER + " " + Build.MODEL);
@@ -374,36 +374,48 @@ public class MainActivity extends Activity {
             return "{\"name\":\"" + Updater.myName(MainActivity.this) + "\",\"code\":" + Updater.myCode(MainActivity.this) + "}";
         }
 
+        private volatile String updUrl = "";
+
         @JavascriptInterface
         public void checkUpdate() {
+            doCheck(false);
+        }
+
+        @JavascriptInterface
+        public void forceCheckUpdate() {
+            doCheck(true);
+        }
+
+        private void doCheck(final boolean force) {
+            if (!force && !Updater.mayAutoCheck(MainActivity.this)) return;
+            runJs("window.__updState && window.__updState('checking')");
             new Thread(() -> {
-                String payload;
+                Updater.Info info;
                 try {
-                    org.json.JSONObject r = Updater.remote(MainActivity.this);
-                    org.json.JSONObject o = new org.json.JSONObject();
-                    o.put("ok", true);
-                    o.put("newer", Updater.isNewer(MainActivity.this, r));
-                    o.put("version", r.optString("version"));
-                    o.put("code", r.optInt("code"));
-                    o.put("current", Updater.myName(MainActivity.this));
-                    o.put("size", r.optLong("size"));
-                    o.put("built", r.optString("built"));
-                    payload = o.toString();
+                    info = Updater.check(MainActivity.this);
                 } catch (Throwable t) {
-                    payload = "{\"ok\":false,\"error\":" + org.json.JSONObject.quote(String.valueOf(t)) + "}";
+                    info = new Updater.Info();
+                    info.error = String.valueOf(t);
                 }
-                final String js = "window.__upd && window.__upd(" + payload + ")";
+                Updater.markChecked(MainActivity.this);
+                updUrl = info.newer ? info.url : "";
+                final String js = "window.__upd && window.__upd(" + info.toJson() + ")";
                 runOnUiThread(() -> runJs(js));
             }, "ytm-upd-check").start();
         }
 
         @JavascriptInterface
         public void installUpdate() {
+            final String url = updUrl;
+            if (url == null || url.isEmpty()) {
+                runJs("window.__updState && window.__updState('error','no-url')");
+                return;
+            }
             runJs("window.__updState && window.__updState('downloading')");
             new Thread(() -> {
                 String err = null;
                 try {
-                    Updater.downloadAndInstall(MainActivity.this, "/app.apk");
+                    Updater.downloadAndInstall(MainActivity.this, url);
                 } catch (Throwable t) {
                     err = String.valueOf(t);
                 }

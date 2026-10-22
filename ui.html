@@ -750,7 +750,8 @@ window.__upd = function(r){
 window.__updState = function(st, err){
   const el = $('updState');
   if(!el) return;
-  if(st === 'downloading') el.textContent = t('upd_downloading');
+  if(st === 'checking') el.textContent = t('upd_checking');
+  else if(st === 'downloading') el.textContent = t('upd_downloading');
   else if(st === 'installing') el.textContent = t('upd_installing');
   else if(st === 'error') el.textContent = t('upd_failed');
 };
@@ -759,7 +760,7 @@ $('rowUpd').onclick = () => {
   if(!Native.checkUpdate){ $('updState').textContent = '—'; return; }   // eski APK
   if(updInfo && updInfo.newer && Native.installUpdate){ Native.installUpdate(); return; }
   $('updState').textContent = t('upd_checking');
-  try { Native.checkUpdate(); } catch(e){ toast(t('upd_failed')); }
+  try { (Native.forceCheckUpdate || Native.checkUpdate).call(Native); } catch(e){ toast(t('upd_failed')); }
 };
 if(hasNative){
   setTimeout(() => { try { Native.checkUpdate(); } catch(e){} }, 2500);

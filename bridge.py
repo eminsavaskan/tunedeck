@@ -751,7 +751,8 @@ async def api_version():
     out = {"ok": True, "apk": "/app.apk", "size": st.st_size,
            "version": str(meta.get("version") or ""), "code": int(meta.get("code") or 0),
            "sha256": meta.get("sha256") or "",
-           "built": datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M")}
+           "built": datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M"),
+           "github": str(_cfg.get("github") or "")}
     if not out["sha256"]:
         out["sha256"] = hashlib.sha256(apk.read_bytes()).hexdigest()
     return out

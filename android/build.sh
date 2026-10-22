@@ -57,6 +57,13 @@ echo "PLAT: $PLAT"
 
 rm -rf "$OUT"; mkdir -p "$OUT/gen" "$OUT/classes" "$OUT/dex"
 
+# CI'da UPDATE_REPO verilirse APK'ya gomulen GitHub deposunu guncelle
+if [ -n "${UPDATE_REPO:-}" ]; then
+  API="$APP/src/com/emin/ytmremote/Api.java"
+  sed -i "s|DEFAULT_UPDATE_REPO = \"[^\"]*\"|DEFAULT_UPDATE_REPO = \"$UPDATE_REPO\"|" "$API"
+  echo "    guncelleme deposu: $UPDATE_REPO"
+fi
+
 echo "==> 1/6 kaynaklar (aapt2 compile)"
 "$BT/aapt2$EXE" compile --dir "$APP/res" -o "$OUT/res.zip"
 

@@ -8,22 +8,49 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
-      - name: Android build-tools
+
+      - name: Android SDK packages
         run: |
           yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
           "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" > /dev/null
+
       - name: Build APK
-        run: bash android/build.sh
         env:
-          BT: "${ANDROID_HOME}/build-tools/34.0.0"
-          PLATFORM: "${ANDROID_HOME}/platforms/android-34/android.jar"
+          ANDROID_SDK_ROOT: ${{ env.ANDROID_HOME }}
+          PYTHON: python3
+          UPDATE_REPO: ${{ github.repository }}
+        run: bash android/build.sh
+
+      - name: Show version metadata
+        run: cat apk-version.json
+
       - uses: actions/upload-artifact@v4
         with:
           name: ytm-remote-apk
-          path: ytm-remote.apk
+          path: |
+            ytm-remote.apk
+            apk-version.json
+
+      # Tag push -> release with the APK + version.json.
+      # The in-app updater reads version.json from the latest release.
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            ytm-remote.apk
+            apk-version.json
+          body: |
+            Install: download `ytm-remote.apk` below (Android will ask to allow installs from this source).
+
+            Existing installs update themselves: the app checks the latest release every 12 hours and
+            shows **Settings → Update** when a newer version code is published.
