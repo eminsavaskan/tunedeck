@@ -324,3 +324,35 @@ window.I18N_FLAGS = {
   es: __F(0x1F1EA, 0x1F1F8),
   tr: __F(0x1F1F9, 0x1F1F7),
 };
+
+/* eksik anahtar: bildirim gorunumu alt yazisi */
+Object.assign(window.I18N.en, {notif_view_sub:"Lock screen and panel"});
+Object.assign(window.I18N.tr, {notif_view_sub:"Kilit ekranı ve panel"});
+Object.assign(window.I18N.de, {notif_view_sub:"Sperrbildschirm und Panel"});
+Object.assign(window.I18N.zh, {notif_view_sub:"锁屏与通知面板"});
+Object.assign(window.I18N.ja, {notif_view_sub:"ロック画面とパネル"});
+Object.assign(window.I18N.ar, {notif_view_sub:"شاشة القفل واللوحة"});
+Object.assign(window.I18N.it, {notif_view_sub:"Schermo di blocco e pannello"});
+Object.assign(window.I18N.pl, {notif_view_sub:"Ekran blokady i panel"});
+Object.assign(window.I18N.ru, {notif_view_sub:"Экран блокировки и панель"});
+Object.assign(window.I18N.es, {notif_view_sub:"Pantalla de bloqueo y panel"});
+Object.assign(window.I18N.ko, {notif_view_sub:"잠금 화면 및 패널"});
+Object.assign(window.I18N.az, {notif_view_sub:"Kilid ekranı və panel"});
+Object.assign(window.I18N.fr, {notif_view_sub:"Écran de verrouillage et panneau"});
+Object.assign(window.I18N.pt, {notif_view_sub:"Tela de bloqueio e painel"});
+
+/* guncelleme */
+Object.assign(window.I18N.en, {"upd": "Update", "upd_checking": "checking…", "upd_latest": "Up to date (v{v})", "upd_available": "v{v} ready", "upd_now": "Update", "upd_downloading": "downloading…", "upd_installing": "installing…", "upd_failed": "update failed"});
+Object.assign(window.I18N.tr, {"upd": "Güncelleme", "upd_checking": "denetleniyor…", "upd_latest": "Güncel (v{v})", "upd_available": "v{v} hazır", "upd_now": "Güncelle", "upd_downloading": "indiriliyor…", "upd_installing": "kuruluyor…", "upd_failed": "güncelleme başarısız"});
+Object.assign(window.I18N.de, {"upd": "Aktualisierung", "upd_checking": "wird geprüft…", "upd_latest": "Aktuell (v{v})", "upd_available": "v{v} bereit", "upd_now": "Aktualisieren", "upd_downloading": "wird geladen…", "upd_installing": "wird installiert…", "upd_failed": "Aktualisierung fehlgeschlagen"});
+Object.assign(window.I18N.zh, {"upd": "更新", "upd_checking": "检查中…", "upd_latest": "已是最新 (v{v})", "upd_available": "v{v} 可用", "upd_now": "更新", "upd_downloading": "下载中…", "upd_installing": "安装中…", "upd_failed": "更新失败"});
+Object.assign(window.I18N.ja, {"upd": "アップデート", "upd_checking": "確認中…", "upd_latest": "最新です (v{v})", "upd_available": "v{v} があります", "upd_now": "更新", "upd_downloading": "ダウンロード中…", "upd_installing": "インストール中…", "upd_failed": "更新に失敗"});
+Object.assign(window.I18N.ar, {"upd": "التحديث", "upd_checking": "جارٍ الفحص…", "upd_latest": "محدَّث (v{v})", "upd_available": "الإصدار v{v} جاهز", "upd_now": "تحديث", "upd_downloading": "جارٍ التنزيل…", "upd_installing": "جارٍ التثبيت…", "upd_failed": "فشل التحديث"});
+Object.assign(window.I18N.it, {"upd": "Aggiornamento", "upd_checking": "verifica…", "upd_latest": "Aggiornato (v{v})", "upd_available": "v{v} pronta", "upd_now": "Aggiorna", "upd_downloading": "download…", "upd_installing": "installazione…", "upd_failed": "aggiornamento non riuscito"});
+Object.assign(window.I18N.pl, {"upd": "Aktualizacja", "upd_checking": "sprawdzanie…", "upd_latest": "Aktualna (v{v})", "upd_available": "v{v} gotowa", "upd_now": "Aktualizuj", "upd_downloading": "pobieranie…", "upd_installing": "instalowanie…", "upd_failed": "aktualizacja nieudana"});
+Object.assign(window.I18N.ru, {"upd": "Обновление", "upd_checking": "проверка…", "upd_latest": "Актуально (v{v})", "upd_available": "v{v} готово", "upd_now": "Обновить", "upd_downloading": "загрузка…", "upd_installing": "установка…", "upd_failed": "не удалось обновить"});
+Object.assign(window.I18N.es, {"upd": "Actualización", "upd_checking": "comprobando…", "upd_latest": "Al día (v{v})", "upd_available": "v{v} lista", "upd_now": "Actualizar", "upd_downloading": "descargando…", "upd_installing": "instalando…", "upd_failed": "actualización fallida"});
+Object.assign(window.I18N.ko, {"upd": "업데이트", "upd_checking": "확인 중…", "upd_latest": "최신 버전 (v{v})", "upd_available": "v{v} 준비됨", "upd_now": "업데이트", "upd_downloading": "다운로드 중…", "upd_installing": "설치 중…", "upd_failed": "업데이트 실패"});
+Object.assign(window.I18N.az, {"upd": "Yeniləmə", "upd_checking": "yoxlanılır…", "upd_latest": "Aktualdır (v{v})", "upd_available": "v{v} hazırdır", "upd_now": "Yenilə", "upd_downloading": "endirilir…", "upd_installing": "quraşdırılır…", "upd_failed": "yeniləmə alınmadı"});
+Object.assign(window.I18N.fr, {"upd": "Mise à jour", "upd_checking": "vérification…", "upd_latest": "À jour (v{v})", "upd_available": "v{v} prête", "upd_now": "Mettre à jour", "upd_downloading": "téléchargement…", "upd_installing": "installation…", "upd_failed": "échec de la mise à jour"});
+Object.assign(window.I18N.pt, {"upd": "Atualização", "upd_checking": "verificando…", "upd_latest": "Atualizado (v{v})", "upd_available": "v{v} pronta", "upd_now": "Atualizar", "upd_downloading": "baixando…", "upd_installing": "instalando…", "upd_failed": "falha na atualização"});

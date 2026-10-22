@@ -205,6 +205,18 @@ controls, widget, boot start).
 
 The APK is signed with a debug key and is not on Google Play — sideloading is the intended method.
 
+### Auto-update
+
+The bridge publishes the APK it serves at `GET /api/version` (version, version code, size, sha256,
+build time). The installed app checks it on start and shows **Settings → Update → “v2.3 ready”**; tapping
+it downloads the APK and hands it to Android's package installer.
+
+- Android always shows its own **Install / Cancel** dialog — an app cannot install silently, and that is
+  a feature, not a bug.
+- Works because the bridge serves the APK: replace `ytm-remote.apk` on the computer (or run
+  `android/build.sh`, which also writes `apk-version.json`) and every phone on the network can update.
+- Nothing is fetched from the internet, so it keeps working on a LAN with no WAN access.
+
 ---
 
 ## Daily use
@@ -319,6 +331,7 @@ Home Assistant, a macro keyboard…).
 | `GET /api/home` | – | `shelves: [{title, items:[{kind,id,title,sub,img}]}]` |
 | `GET /api/library` | – | `items[]` — playlists and albums |
 | `GET /api/info` | – | `url, device, app_up` |
+| `GET /api/version` | – | `version, code, size, sha256, built, apk` — used by the auto-updater |
 | `POST /api/list` | `{"href":"playlist?list=…"}` | `title, cover, items[]` |
 | `POST /api/search` | `{"q":"tarkan"}` | `items[]`, re-ranked against the query |
 | `POST /api/play` | `{"id":"<videoId>"}` | plays that track |
@@ -360,6 +373,20 @@ ANDROID_SDK_ROOT=/opt/android-sdk JAVA_HOME=/opt/jdk-17 bash android/build.sh
 `.github/workflows/apk.yml` builds the APK on GitHub for every tag (`v*`) and uploads it as an artifact.
 
 ---
+
+## Tests
+
+Two self-contained suites, no test framework needed:
+
+```bash
+python bridge.py                 # in one terminal
+python tests/api_test.py         # 120+ checks: contract, edge cases, concurrency
+node tests/i18n_audit.js i18n.js # every language complete, placeholders, RTL list
+```
+
+`api_test.py` exercises every endpoint with valid, empty, malformed, wrong-typed and hostile input
+(invalid JSON, 500-char queries, XSS payloads, path traversal, 16 parallel requests) and checks that
+nothing returns a 500 or hangs. Both suites exit non-zero on failure, so they can run in CI.
 
 ## Limitations
 

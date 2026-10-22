@@ -108,5 +108,22 @@ APK="${APK_OUT:-$(dirname "$ROOT")/ytm-remote.apk}"
 "$APKSIGN" sign --ks "$KS" --ks-pass pass:android --key-pass pass:android --out "$APK" "$OUT/app-aligned.apk"
 "$APKSIGN" verify --print-certs "$APK" | head -3
 
+# --- surum bilgisi (telefondaki guncelleyici bunu okur)
+MAN="$APP/AndroidManifest.xml"
+VER="$(grep -o 'android:versionName="[^"]*"' "$MAN" | head -1 | sed 's/.*="//; s/"//')"
+CODE="$(grep -o 'android:versionCode="[0-9]*"' "$MAN" | head -1 | sed 's/[^0-9]//g')"
+SIZE="$(wc -c < "$APK" | tr -d ' ')"
+SHA="$(sha256sum "$APK" | cut -c1-32)"
+META="$(dirname "$ROOT")/apk-version.json"
+printf '{
+  "version": "%s",
+  "code": %s,
+  "apk": "/app.apk",
+  "size": %s,
+  "sha256": "%s"
+}
+'   "$VER" "$CODE" "$SIZE" "$SHA" > "$META"
+echo "surum dosyasi: $META  (v$VER / code $CODE)"
+
 ls -la "$APK"
 echo "TAMAM"

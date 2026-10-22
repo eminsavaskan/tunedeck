@@ -340,6 +340,11 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
       <div class="lbl"><span data-i18n="service">Arka plan kontrolleri</span><small id="svcState" data-on="1">açık</small></div>
     </button>
 
+    <button class="row native" id="rowUpd">
+      <svg><use href="#i-refresh"/></svg>
+      <div class="lbl"><span data-i18n="upd">Güncelleme</span><small id="updState">—</small></div>
+    </button>
+
     <div class="row">
       <div class="lbl" data-i18n="language">Dil</div>
       <select id="langSel" class="langsel"></select>
@@ -732,6 +737,33 @@ $('launchBtn').onclick = async () => {
   btn.textContent = 'Aç';
   setTimeout(poll, 2500);
 };
+
+/* ---------------- guncelleme ---------------- */
+let updInfo = null;
+window.__upd = function(r){
+  updInfo = r || null;
+  const el = $('updState');
+  if(!el) return;
+  if(!r || !r.ok){ el.textContent = t('upd_failed'); return; }
+  el.textContent = r.newer ? t('upd_available', {v: r.version}) : t('upd_latest', {v: r.current});
+};
+window.__updState = function(st, err){
+  const el = $('updState');
+  if(!el) return;
+  if(st === 'downloading') el.textContent = t('upd_downloading');
+  else if(st === 'installing') el.textContent = t('upd_installing');
+  else if(st === 'error') el.textContent = t('upd_failed');
+};
+$('rowUpd').onclick = () => {
+  if(!hasNative){ toast(t('native_only')); return; }
+  if(!Native.checkUpdate){ $('updState').textContent = '—'; return; }   // eski APK
+  if(updInfo && updInfo.newer && Native.installUpdate){ Native.installUpdate(); return; }
+  $('updState').textContent = t('upd_checking');
+  try { Native.checkUpdate(); } catch(e){ toast(t('upd_failed')); }
+};
+if(hasNative){
+  setTimeout(() => { try { Native.checkUpdate(); } catch(e){} }, 2500);
+}
 
 $('langSel').onchange = e => setLang(e.target.value);
 applyStatic();

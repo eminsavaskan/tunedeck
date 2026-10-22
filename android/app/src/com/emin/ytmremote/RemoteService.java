@@ -116,7 +116,8 @@ public class RemoteService extends Service {
         } catch (Throwable t) {
             lastError = "onCreate: " + t;
             Diag.send(getApplicationContext(), "SERVIS-HATASI");
-            throw new RuntimeException(t);
+            running = false;
+            try { stopSelf(); } catch (Throwable ignored) {}   // uygulamayi cokertme
         }
     }
 

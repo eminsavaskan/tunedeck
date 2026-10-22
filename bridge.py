@@ -9,6 +9,8 @@ icin bir web uygulamasi (PWA) yayinlar.
 Calistir:  python bridge.py
 """
 import asyncio, io, json, os, re, socket, subprocess, sys, time, unicodedata, urllib.parse
+from datetime import datetime
+import hashlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -236,43 +238,62 @@ KEY_ENTER_CHAR = {"type": "char", "key": "Enter", "text": "\r", "unmodifiedText"
 KEY_ENTER_UP = {"type": "keyUp", "key": "Enter", "code": "Enter",
                 "windowsVirtualKeyCode": 13, "nativeVirtualKeyCode": 13}
 
-RESULTS_JS = r"""
-(() => {
-  const items = [], seen = new Set();
+ROWS_BODY = r"""
+  const ROW_SEL = 'ytmusic-responsive-list-item-renderer, ytmusic-multi-row-list-item-renderer, ytmusic-two-row-item-renderer';
   const clean = s => (s || '').replace(/\s+/g, ' ').trim();
-  const bad = s => !s || /^(Şarkı|Video|Albüm|Single|EP|Podcast|Çalma Listesi|Song|Album)$/i.test(s)
-                    || /kez dinlendi|görüntüleme|views|dinlenme/i.test(s);
-  const visible = r => {
-    if (r.closest('ytmusic-card-shelf-renderer')) return true;   // "en iyi sonuc" karti
-    if (r.offsetParent === null) return !!r.closest('#items');
-    const b = r.getBoundingClientRect();
-    return b.width > 80 && b.height > 18;
+  const vis = e => {
+    if (!e) return false;
+    if (e.offsetParent === null) return !!e.closest('#items');
+    const b = e.getBoundingClientRect();
+    return b.width > 50 && b.height > 12;
   };
+  // video / podcast kimligi: href icinden cikar
+  const idFrom = row => {
+    for (const a of row.querySelectorAll('a[href]')) {
+      const h = a.getAttribute('href') || '';
+      const m = h.match(/(?:[?&]v=|\/?podcast\/)([A-Za-z0-9_-]{6,})/);
+      if (m) return { id: m[1], href: h };
+    }
+    return null;
+  };
+  // alt satir: eski (secondary-flex-columns) ve yeni (subtitle/byline) duzen
+  const subOf = row => {
+    let parts = [...row.querySelectorAll('.secondary-flex-columns > *')].map(e => clean(e.textContent));
+    if (!parts.length) {
+      const sub = row.querySelector('.subtitle, .byline, .secondary-title');
+      if (sub) parts = [clean(sub.textContent)];
+    }
+    return parts;
+  };
+  const badPart = s => !s || /^(Şarkı|Video|Albüm|Single|EP|Podcast|Çalma Listesi|Song|Album)$/i.test(s)
+                        || /kez dinlendi|görüntüleme|views|dinlenme|gün önce|hours? ago|days? ago|weeks? ago/i.test(s);
+"""
+
+RESULTS_JS = "(() => {" + ROWS_BODY + r"""
+  const items = [], seen = new Set();
   const grab = row => {
-    if (!visible(row)) return;                      // gizli/onbellek satirlarini at
-    const a = row.querySelector('a#thumbnail') || row.querySelector('a[href*="v="]');
-    if (!a) return;
-    const href = a.getAttribute('href') || '';
-    const m = href.match(/[?&]v=([A-Za-z0-9_-]{6,})/);
-    if (!m || seen.has(m[1])) return;
-    seen.add(m[1]);
+    if (!vis(row)) return;
+    if (!row.closest('ytmusic-shelf-renderer, ytmusic-playlist-shelf-renderer, ytmusic-card-shelf-renderer')) return;
+    const got = idFrom(row);
+    if (!got || seen.has(got.id)) return;
     const title = clean((row.querySelector('.title') || {}).textContent || '');
-    const sec = [...row.querySelectorAll('.secondary-flex-columns > *')].map(e => clean(e.textContent));
-    const parts = (sec[0] || '').split('•').map(s => s.trim()).filter(Boolean);
-    const artist = parts.filter(s => !bad(s))[0] || '';
-    const album = (sec[1] && !bad(sec[1])) ? sec[1] : '';
-    const dur = /^\d+:\d{2}$/.test(sec[2] || '') ? sec[2] : '';
+    if (!title) return;
+    seen.add(got.id);
+    const sec = subOf(row);
+    const parts = (sec[0] || '').split('•').map(x => x.trim()).filter(Boolean);
+    const artist = parts.filter(x => !badPart(x))[0] || '';
+    const album = (sec[1] && !badPart(sec[1])) ? sec[1] : '';
+    const dur = parts.find(x => /^\d+:\d{2}$/.test(x)) || '';
     const img = row.querySelector('img');
-    const typeRaw = (sec[0] || '').split('•')[0].trim();
+    const typeRaw = parts[0] || '';
     const type = /şarkı|song/i.test(typeRaw) ? 'song' : (/video/i.test(typeRaw) ? 'video' : '');
-    items.push({ id: m[1], title: title || 'Bilinmeyen', type: type,
+    items.push({ id: got.id, title: title, type: type,
                  sub: [artist, album, dur].filter(Boolean).join(' • '),
-                 img: img ? (img.src || '') : '', href });
+                 img: img ? (img.src || '') : '', href: got.href });
   };
-  // once ana sonuc bolumleri (sarkilar/videolar), sonra kalan kartlar
   document.querySelectorAll('ytmusic-item-section-renderer').forEach(sec =>
-    sec.querySelectorAll('ytmusic-responsive-list-item-renderer').forEach(grab));
-  document.querySelectorAll('ytmusic-responsive-list-item-renderer, ytmusic-two-row-item-renderer').forEach(grab);
+    sec.querySelectorAll(ROW_SEL).forEach(grab));
+  document.querySelectorAll(ROW_SEL).forEach(grab);
   return JSON.stringify(items.slice(0, 20));
 })()
 """
@@ -287,8 +308,10 @@ PLAY_JS = r"""
     if (v && v.paused) { const b = document.querySelector('#play-pause-button'); if (b) (b.querySelector('button') || b).click(); }
     return 'already';
   }
-  const links = [...document.querySelectorAll('a[href*="v="]')];
-  const el = links.find(a => (a.getAttribute('href') || '').includes('v=' + vid));
+  const el = [...document.querySelectorAll('a[href]')].find(a => {
+    const h = a.getAttribute('href') || '';
+    return h.includes(vid) && /(?:[?&]v=|\/?podcast\/)/.test(h);
+  });
   if (el) { el.click(); return 'clicked'; }
   return 'none';
 }
@@ -408,6 +431,21 @@ async def _auth(request: Request, call_next):
     return await call_next(request)
 
 
+async def jbody(req: Request):
+    """Govdeyi sozluk olarak dondurur; bozuk/bos/dizi govdede None."""
+    try:
+        b = await req.json()
+    except Exception:
+        return None
+    return b if isinstance(b, dict) else None
+
+
+@app.exception_handler(Exception)
+async def _unhandled(request: Request, exc: Exception):
+    return JSONResponse({"ok": False, "error": (type(exc).__name__ + ": " + str(exc))[:200]},
+                        status_code=500)
+
+
 @app.get("/", response_class=HTMLResponse)
 async def index():
     html = (HERE / "ui.html").read_text(encoding="utf-8")
@@ -473,11 +511,14 @@ async def api_prev():
 
 @app.post("/api/volume")
 async def api_volume(req: Request):
-    body = await req.json()
-    if "pct" in body:
-        pct = max(0, min(100, int(round(float(body["pct"])))))
-    else:
-        pct = max(0, min(100, int(round(float(body.get("v", 0.5)) * 100))))
+    body = await jbody(req)
+    if body is None:
+        return JSONResponse({"ok": False, "error": "gecersiz govde"}, status_code=400)
+    try:
+        raw = body["pct"] if "pct" in body else float(body.get("v", 0.5)) * 100
+        pct = max(0, min(100, int(round(float(raw)))))
+    except (TypeError, ValueError):
+        return JSONResponse({"ok": False, "error": "pct/v sayisal olmali"}, status_code=400)
     return await act(f"({VOL_JS})({pct})")
 
 
@@ -488,15 +529,25 @@ async def api_mute():
 
 @app.post("/api/seek")
 async def api_seek(req: Request):
-    body = await req.json()
-    t = max(0.0, float(body.get("t", 0)))
+    body = await jbody(req)
+    if body is None:
+        return JSONResponse({"ok": False, "error": "gecersiz govde"}, status_code=400)
+    try:
+        t = max(0.0, float(body.get("t", 0)))
+    except (TypeError, ValueError):
+        return JSONResponse({"ok": False, "error": "t sayisal olmali"}, status_code=400)
+    st = await read_state()
+    dur = float(st.get("duration") or 0)
+    if dur > 0:
+        t = min(t, dur - 1.0)          # surenin otesine sarma
     return await act(f"({SEEK_JS})({t})")
 
 
 @app.post("/api/search")
 async def api_search(req: Request):
-    body = await req.json()
-    q = (body.get("q") or "").strip()
+    body = await jbody(req) or {}
+    q = body.get("q")
+    q = q.strip() if isinstance(q, str) else ""
     if not q:
         return {"ok": True, "items": []}
     try:
@@ -535,6 +586,7 @@ async def api_search(req: Request):
             items = json.loads(await cdp.js(RESULTS_JS) or "[]")
         out = [{"id": it["id"],
                 "title": (it.get("title") or "Bilinmeyen").strip(),
+                "kind": "song",
                 "type": it.get("type", ""),
                 "sub": (it.get("sub") or "")[:90],
                 "img": thumb_for({"img": it.get("img"), "id": it["id"]}, "song"),
@@ -546,8 +598,9 @@ async def api_search(req: Request):
 
 @app.post("/api/play")
 async def api_play(req: Request):
-    body = await req.json()
-    vid = (body.get("id") or "").strip()
+    body = await jbody(req) or {}
+    vid = body.get("id")
+    vid = vid.strip() if isinstance(vid, str) else ""
     if not re.fullmatch(r"[A-Za-z0-9_-]{6,20}", vid):
         return {"ok": False, "error": "gecersiz sarki kimligi"}
     try:
@@ -660,7 +713,7 @@ async def api_launch(req: Request):
     """Uygulamayi telefondan elle baslatmak icin (otomatik baslatma kapali)."""
     body = {}
     try:
-        body = await req.json() or {}
+        body = await jbody(req) or {}
     except Exception:
         pass
     if await asyncio.to_thread(cdp.browser_up):
@@ -679,6 +732,29 @@ async def api_launch(req: Request):
 @app.get("/i18n.js")
 async def i18n_js():
     return Response((HERE / "i18n.js").read_bytes(), media_type="application/javascript")
+
+
+@app.get("/api/version")
+async def api_version():
+    """Telefondaki uygulamanin kendini guncelleyebilmesi icin APK surum bilgisi."""
+    apk = HERE / "ytm-remote.apk"
+    if not apk.exists():
+        return {"ok": False, "error": "APK bulunamadi"}
+    meta = {}
+    f = HERE / "apk-version.json"
+    if f.exists():
+        try:
+            meta = json.loads(f.read_text(encoding="utf-8"))
+        except Exception:
+            meta = {}
+    st = apk.stat()
+    out = {"ok": True, "apk": "/app.apk", "size": st.st_size,
+           "version": str(meta.get("version") or ""), "code": int(meta.get("code") or 0),
+           "sha256": meta.get("sha256") or "",
+           "built": datetime.fromtimestamp(st.st_mtime).strftime("%Y-%m-%d %H:%M")}
+    if not out["sha256"]:
+        out["sha256"] = hashlib.sha256(apk.read_bytes()).hexdigest()
+    return out
 
 
 @app.get("/api/info")
@@ -752,32 +828,41 @@ CARDS_JS = r"""
 }
 """
 
-LIST_JS = r"""
+SCROLL_LIST_JS = r"""
 () => {
-  const clean = s => (s || '').replace(/\s+/g, ' ').trim();
-  const vis = e => e && e.offsetParent !== null;
+  const sc = document.querySelector('#scroller, ytmusic-app-layout #content, tp-yt-app-drawer #contentContainer');
+  const el = sc || document.scrollingElement;
+  if (!el) return 'yok';
+  el.scrollTop = el.scrollHeight;
+  window.scrollTo(0, document.body.scrollHeight);
+  return String(el.scrollTop);
+}
+"""
+
+LIST_JS = "() => {" + ROWS_BODY + r"""
   const header = document.querySelector('ytmusic-detail-header-renderer, ytmusic-editable-playlist-detail-header-renderer, ytmusic-responsive-header-renderer');
   const headerVisible = header && vis(header);
   const title = clean(headerVisible ? ((header.querySelector('#title, .title') || {}).textContent || '') : '');
   const hImg = headerVisible ? header.querySelector('img') : null;
   const cover = hImg ? (hImg.src || '') : '';
   const items = [], seen = new Set();
-  const rows = [...document.querySelectorAll('ytmusic-responsive-list-item-renderer')];
-  for (const r of rows) {
+  // sayfada baska raflar/oneri listeleri de var: en cok satir iceren raf = parca listesi
+  const shelves = [...document.querySelectorAll('ytmusic-playlist-shelf-renderer, ytmusic-shelf-renderer')]
+    .filter(x => x.querySelector(ROW_SEL));
+  shelves.sort((a, b) => b.querySelectorAll(ROW_SEL).length - a.querySelectorAll(ROW_SEL).length);
+  const scope = shelves.length ? shelves[0] : document;
+  for (const r of [...scope.querySelectorAll(ROW_SEL)]) {
     if (!vis(r)) continue;
-    const a = r.querySelector('a[href*="v="]');
-    if (!a) continue;
-    const m = (a.getAttribute('href') || '').match(/[?&]v=([A-Za-z0-9_-]{6,})/);
-    if (!m || seen.has(m[1])) continue;
-    seen.add(m[1]);
+    const got = idFrom(r);
+    if (!got || seen.has(got.id)) continue;
     const t = clean((r.querySelector('.title') || {}).textContent);
-    const sec = [...r.querySelectorAll('.secondary-flex-columns > *')].map(e => clean(e.textContent));
-    const parts = (sec[0] || '').split('•').map(s => s.trim()).filter(Boolean);
-    const artist = parts.filter(p => p && !/^(Şarkı|Video|Albüm|Song)$/i.test(p)
-      && !/kez dinlendi|görüntüleme|views/i.test(p))[0] || '';
-    const dur = /^\d+:\d{2}$/.test(sec[2] || '') ? sec[2] : '';
+    if (!t) continue;
+    seen.add(got.id);
+    const parts = (subOf(r)[0] || '').split('•').map(x => x.trim()).filter(Boolean);
+    const artist = parts.filter(x => !badPart(x))[0] || '';
+    const dur = parts.find(x => /^\d+:\d{2}$/.test(x)) || '';
     const img = r.querySelector('img');
-    items.push({ id: m[1], title: t, sub: [artist, dur].filter(Boolean).join(' • '),
+    items.push({ id: got.id, title: t, sub: [artist, dur].filter(Boolean).join(' • '),
                  img: img ? (img.src || '') : '' });
   }
   return JSON.stringify({ title, cover, items: items.slice(0, 250) });
@@ -945,8 +1030,9 @@ async def api_library():
 
 @app.post("/api/list")
 async def api_list(req: Request):
-    body = await req.json()
-    href = (body.get("href") or "").strip()
+    body = await jbody(req) or {}
+    href = body.get("href")
+    href = href.strip() if isinstance(href, str) else ""
     if not re.match(r"^(playlist\?list=|browse/)[A-Za-z0-9_\-]+", href):
         return {"ok": False, "error": "gecersiz liste adresi"}
     try:
@@ -969,6 +1055,25 @@ async def api_list(req: Request):
                 data = {}
             if data.get("items"):
                 break
+        # uzun listelerde asagi kaydirip devamini yukle (en fazla 5 tur, 400 parca)
+        if data.get("items"):
+            seen_ids = {it["id"] for it in data["items"]}
+            for _ in range(5):
+                if len(data["items"]) >= 400:
+                    break
+                await cdp.js(SCROLL_LIST_JS)
+                await asyncio.sleep(1.0)
+                try:
+                    more = json.loads(await cdp.js(f"({LIST_JS})()") or "{}")
+                except Exception:
+                    break
+                added = [it for it in more.get("items", []) if it["id"] not in seen_ids]
+                if not added:
+                    break
+                seen_ids.update(it["id"] for it in added)
+                data["items"].extend(added)
+                if not data.get("title") and more.get("title"):
+                    data["title"] = more["title"]
         items = [{"id": it["id"], "title": it.get("title", ""), "sub": it.get("sub", ""),
                   "img": thumb_for(it, "song")} for it in data.get("items", [])]
         cover = big_art(data.get("cover", "")) if not str(data.get("cover", "")).startswith("data:") else ""

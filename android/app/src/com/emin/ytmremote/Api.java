@@ -66,6 +66,19 @@ public final class Api {
         }
     }
 
+    public static String getRaw(Context c, String path) throws Exception {
+        return request(c, path, "GET", null);
+    }
+
+    /** APK indirme akisi (buyuk govde, uzun okuma zaman asimi). */
+    public static InputStream stream(Context c, String path) throws Exception {
+        HttpURLConnection conn = (HttpURLConnection) new URL(base(c) + path).openConnection();
+        conn.setConnectTimeout(CONNECT_TIMEOUT);
+        conn.setReadTimeout(60000);
+        conn.setRequestMethod("GET");
+        return conn.getInputStream();
+    }
+
     /** Kopru ayakta mi? Kisa zaman asimi ile tek istek atar (ag disi is parcaciginda cagrilmali). */
     public static boolean ping(Context c) {
         try {

@@ -293,7 +293,7 @@ public class MainActivity extends Activity {
                 o.put("server", Api.base(MainActivity.this));
                 o.put("notifMode", Api.prefs(MainActivity.this).getString("notif_mode", "media"));
                 o.put("serviceRunning", RemoteService.running);
-                o.put("version", "2.1");
+                o.put("version", "2.2");
                 o.put("sdk", Build.VERSION.SDK_INT);
                 o.put("os", Build.VERSION.RELEASE);
                 o.put("model", Build.MANUFACTURER + " " + Build.MODEL);
@@ -368,6 +368,51 @@ public class MainActivity extends Activity {
         public void setSheet(final boolean open) {
             sheetOpen = open;
         }
+
+        @JavascriptInterface
+        public String appVersion() {
+            return "{\"name\":\"" + Updater.myName(MainActivity.this) + "\",\"code\":" + Updater.myCode(MainActivity.this) + "}";
+        }
+
+        @JavascriptInterface
+        public void checkUpdate() {
+            new Thread(() -> {
+                String payload;
+                try {
+                    org.json.JSONObject r = Updater.remote(MainActivity.this);
+                    org.json.JSONObject o = new org.json.JSONObject();
+                    o.put("ok", true);
+                    o.put("newer", Updater.isNewer(MainActivity.this, r));
+                    o.put("version", r.optString("version"));
+                    o.put("code", r.optInt("code"));
+                    o.put("current", Updater.myName(MainActivity.this));
+                    o.put("size", r.optLong("size"));
+                    o.put("built", r.optString("built"));
+                    payload = o.toString();
+                } catch (Throwable t) {
+                    payload = "{\"ok\":false,\"error\":" + org.json.JSONObject.quote(String.valueOf(t)) + "}";
+                }
+                final String js = "window.__upd && window.__upd(" + payload + ")";
+                runOnUiThread(() -> runJs(js));
+            }, "ytm-upd-check").start();
+        }
+
+        @JavascriptInterface
+        public void installUpdate() {
+            runJs("window.__updState && window.__updState('downloading')");
+            new Thread(() -> {
+                String err = null;
+                try {
+                    Updater.downloadAndInstall(MainActivity.this, "/app.apk");
+                } catch (Throwable t) {
+                    err = String.valueOf(t);
+                }
+                final String e = err;
+                runOnUiThread(() -> runJs(e == null
+                        ? "window.__updState && window.__updState('installing')"
+                        : "window.__updState && window.__updState('error'," + org.json.JSONObject.quote(e) + ")"));
+            }, "ytm-upd-dl").start();
+        }
     }
 
     // ------------------------------------------------------------------ servis
@@ -392,6 +437,16 @@ public class MainActivity extends Activity {
 
     private void reload() {
         if (web != null) web.loadUrl(Api.base(this));
+    }
+
+    private void runJs(final String js) {
+        if (web == null) return;
+        runOnUiThread(() -> {
+            try {
+                web.evaluateJavascript(js, null);
+            } catch (Throwable ignored) {
+            }
+        });
     }
 
     private void toggleService() {
