@@ -741,7 +741,9 @@ async def api_version():
     if not apk.exists():
         return {"ok": False, "error": "APK bulunamadi"}
     meta = {}
-    f = HERE / "apk-version.json"
+    f = HERE / "version.json"
+    if not f.exists():
+        f = HERE / "apk-version.json"
     if f.exists():
         try:
             meta = json.loads(f.read_text(encoding="utf-8"))

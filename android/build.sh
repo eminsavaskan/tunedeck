@@ -121,7 +121,7 @@ VER="$(grep -o 'android:versionName="[^"]*"' "$MAN" | head -1 | sed 's/.*="//; s
 CODE="$(grep -o 'android:versionCode="[0-9]*"' "$MAN" | head -1 | sed 's/[^0-9]//g')"
 SIZE="$(wc -c < "$APK" | tr -d ' ')"
 SHA="$(sha256sum "$APK" | cut -c1-32)"
-META="$(dirname "$ROOT")/apk-version.json"
+META="$(dirname "$ROOT")/version.json"
 printf '{
   "version": "%s",
   "code": %s,

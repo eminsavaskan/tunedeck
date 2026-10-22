@@ -128,7 +128,7 @@ public final class Updater {
                     JSONObject a = assets.getJSONObject(i);
                     String name = a.optString("name", "").toLowerCase();
                     if (name.endsWith(".apk")) apkUrl = a.optString("browser_download_url", "");
-                    if (name.equals("version.json")) verUrl = a.optString("browser_download_url", "");
+                    if (name.equals("version.json") || name.equals("apk-version.json")) verUrl = a.optString("browser_download_url", "");
                 }
             }
             if (apkUrl.isEmpty()) return null;
@@ -140,9 +140,12 @@ public final class Updater {
                 out.put("code", v.optInt("code", 0));
                 out.put("sha256", v.optString("sha256", ""));
             } else {
+                // version.json yoksa: etiket adini yuklu surumle AYNI olcekte karsilastir,
+                // aksi halde "2.6" -> 20600 gibi kodlar sahte guncelleme gosterir
                 String clean = tag.replaceAll("^[vV]", "");
                 out.put("version", clean);
                 out.put("code", codeFromName(clean));
+                out.put("codeIsName", true);
                 out.put("sha256", "");
             }
             out.put("apk", apkUrl);
@@ -205,7 +208,8 @@ public final class Updater {
         JSONObject g = githubMeta(repo);
         if (g != null) {
             int gcode = g.optInt("code", 0);
-            if (gcode > mine) {
+            int compareTo = g.optBoolean("codeIsName", false) ? codeFromName(myName(c)) : mine;
+            if (gcode > compareTo) {
                 info.ok = true;
                 info.newer = true;
                 info.code = gcode;
