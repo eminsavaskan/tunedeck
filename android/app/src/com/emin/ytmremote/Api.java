@@ -19,7 +19,7 @@ import java.nio.charset.StandardCharsets;
 public final class Api {
 
     /** Otomatik guncelleme icin GitHub deposu. Kendi reponu yaz (ya da CI'da UPDATE_REPO ile gecir). */
-    public static final String DEFAULT_UPDATE_REPO = "owner/ytm-remote";
+    public static final String DEFAULT_UPDATE_REPO = "eminsavaskan/tunedeck";
 
     public static final String DEFAULT_BASE = "http://192.168.1.231:8777";
     private static final int CONNECT_TIMEOUT = 5000;
