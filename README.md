@@ -86,7 +86,7 @@ browser (Chrome / Brave / Edge) instead.
 
 ### 2. Install Python
 
-Download it from [python.org](https://www.python.org/downloads/) and **tick “Add python.exe to PATH”**
+Download it from [python.org](https://www.python.org/downloads/) and **tick "Add python.exe to PATH"**
 on the first screen of the installer. Then check it in a terminal:
 
 ```bash
@@ -182,7 +182,7 @@ your firewall (on Ubuntu: `sudo ufw allow 8777/tcp`).
 
 ## Set up your phone
 
-1. Connect the phone to the **same Wi-Fi** as the computer. (Guest networks and “AP isolation” block this.)
+1. Connect the phone to the **same Wi-Fi** as the computer. (Guest networks and "AP isolation" block this.)
 2. Open the URL the bridge printed, for example `http://192.168.1.50:8777`.
 3. Browser menu → **Add to home screen**. It now opens full-screen like an app.
 4. Point the phone at the computer and tap play. Done.
@@ -229,7 +229,7 @@ It asks two places, in this order:
   by CI bake in `${{ github.repository }}` automatically, so a downloaded APK already knows where to look
 . No bridge or PC needed.
 - Unauthenticated GitHub API allows 60 requests/hour per IP; one check per device per 12 h is far below
-  that, and failures are silent (the row simply says “up to date”).
+  that, and failures are silent (the row simply says "up to date").
 
 **Publishing an update (maintainer):**
 
@@ -260,8 +260,8 @@ You don't need the bridge, the PC or a manual reinstall: one tap, once per relea
 
 Behaviour you should know:
 
-- If the player is **closed on the PC, it stays closed**. The phone shows “YouTube Music is closed on the
-  computer” with an **Open** button. Nothing starts behind your back.
+- If the player is **closed on the PC, it stays closed**. The phone shows "YouTube Music is closed on the
+  computer" with an **Open** button. Nothing starts behind your back.
 - If the phone loses Wi-Fi, the Android card disappears after ~9 seconds instead of hanging around.
 - Volume set from the phone is re-applied after a track change (YouTube Music resets its own volume).
 
@@ -272,9 +272,9 @@ Behaviour you should know:
 | Symptom | Cause | Fix |
 |---|---|---|
 | Phone cannot open the page | different network, AP isolation, firewall | same Wi-Fi? allow Python on private networks; get the PC's IP with `ipconfig` |
-| Page loads, but “computer unreachable” | bridge stopped | start `bridge.py` again |
-| “YouTube Music is closed on the computer” | player is not running | open the player, or tap **Open** |
-| “App is open but remote control is off” | player started **without** `--remote-debugging-port=9223` | quit it fully, start it from the patched shortcut |
+| Page loads, but "computer unreachable" | bridge stopped | start `bridge.py` again |
+| "YouTube Music is closed on the computer" | player is not running | open the player, or tap **Open** |
+| "App is open but remote control is off" | player started **without** `--remote-debugging-port=9223` | quit it fully, start it from the patched shortcut |
 | `http://127.0.0.1:9223/json/version` shows nothing | same as above | fix the shortcut |
 | Search returns unrelated songs | YouTube Music's own search ranking | type more of the title; results are re-ranked against your query |
 | Volume jumps back | a track change reset it | it re-applies automatically; if not, set it again |
@@ -294,7 +294,7 @@ No. Firefox speaks WebDriver BiDi, not the Chrome DevTools Protocol. Use Chrome,
 desktop app.
 
 **Can the phone play the music instead of the PC?**
-No. YouTube Music has no “cast to another device” API, so the audio always comes from the machine that
+No. YouTube Music has no "cast to another device" API, so the audio always comes from the machine that
 plays it. The phone is the remote.
 
 **Two people, two accounts?**
