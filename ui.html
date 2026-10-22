@@ -416,7 +416,10 @@ function withToken(url){
 
 async function api(path, body){
   try{
-    const r = await fetch(withToken(path), body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    let r = await fetch(withToken(path), body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(r.status === 405){   // yanlislikla GET gonderildiyse POST ile tekrar dene
+      r = await fetch(withToken(path), {method:'POST',headers:{'Content-Type':'application/json'},body:'{}'});
+    }
     const j = await r.json();
     return j;
   }catch(e){ setConn(false); return {ok:false,error:t('unreachable')}; }
@@ -591,15 +594,15 @@ async function playSong(id, el){
 
 const doToggle = async () => {
   if(state){ state.playing = !state.playing; renderNow(state); }
-  const j = await api('/api/toggle'); if(j.state) renderNow(j.state);
+  const j = await api('/api/toggle', {}); if(j.state) renderNow(j.state);
 };
 $('miniPP').onclick = doToggle;
 $('ppp').onclick = doToggle;
-const doNext = async () => { const j = await api('/api/next'); if(j.state) renderNow(j.state); };
+const doNext = async () => { const j = await api('/api/next', {}); if(j.state) renderNow(j.state); };
 $('miniNext').onclick = doNext;
 $('pnext').onclick = doNext;
-$('pprev').onclick = async () => { const j = await api('/api/prev'); if(j.state) renderNow(j.state); };
-$('pmute').onclick = async () => { const j = await api('/api/mute'); if(j.state) renderNow(j.state); };
+$('pprev').onclick = async () => { const j = await api('/api/prev', {}); if(j.state) renderNow(j.state); };
+$('pmute').onclick = async () => { const j = await api('/api/mute', {}); if(j.state) renderNow(j.state); };
 
 $('miniOpen').onclick = () => { $('player').classList.add('open'); };
 $('pclose').onclick = () => { $('player').classList.remove('open'); };
