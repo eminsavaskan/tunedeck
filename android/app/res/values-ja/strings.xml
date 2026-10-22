@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_name">音楽リモート</string>
+    <string name="channel_plain">音楽リモート（通常）</string>
+    <string name="action_prev">前へ</string>
+    <string name="action_play">再生</string>
+    <string name="action_pause">一時停止</string>
+    <string name="action_next">次へ</string>
+    <string name="test_title">テスト通知</string>
+    <string name="test_text">これが見えれば通知は動作しています。</string>
+    <string name="unreachable">パソコンに接続できません</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_name">Müzik kumandası</string>
+    <string name="channel_plain">Müzik kumandası (normal)</string>
+    <string name="action_prev">Önceki</string>
+    <string name="action_play">Çal</string>
+    <string name="action_pause">Duraklat</string>
+    <string name="action_next">Sonraki</string>
+    <string name="test_title">Test bildirimi</string>
+    <string name="test_text">Bunu görüyorsan bildirim sistemi çalışıyor.</string>
+    <string name="unreachable">bilgisayara ulaşılamıyor</string>
+</resources>

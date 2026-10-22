@@ -1,0 +1,39 @@
+# yerel ayarlar (IP, token, yollar)
+settings.json
+
+# runtime / araclar
+runtime/
+android/sdk/
+browser-profile/
+brave-test/
+*.log
+bridge.log
+debug.log
+
+# derleme ciktilari
+android/build/
+android/*.apk
+*.apk
+*.dex
+*.class
+*.keystore
+!docs/*.png
+
+# python
+__pycache__/
+*.pyc
+.venv/
+
+# isletim sistemi
+Thumbs.db
+desktop.ini
+.DS_Store
+tools/
+qr.png
+telefon-qr.png
+ayarlar.png
+kapali.png
+oynatici.png
+onizleme.png
+android/build/
+*.idsig

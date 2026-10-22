@@ -1,0 +1,746 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#030303">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="icon" href="/icon-192.png">
+<title>YT Music Remote</title>
+<style>
+:root{
+  --bg:#030303; --surface:#1c1c1c; --surface2:#282828; --line:#2f2f2f;
+  --text:#fff; --muted:#a0a0a0; --muted2:#6e6e6e; --red:#ff0000;
+  --bar:64px; --tab:56px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);overflow:hidden;
+  font-family:Roboto,system-ui,-apple-system,"Segoe UI",Arial,sans-serif}
+button{font-family:inherit;border:0;background:none;color:inherit;padding:0;cursor:pointer}
+input{font-family:inherit}
+svg.ic{width:24px;height:24px;fill:currentColor;display:block}
+
+/* ---------- iskelet ---------- */
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+#topbar{flex:none;height:52px;display:flex;align-items:center;gap:10px;padding:0 14px;
+  background:var(--bg);position:relative;z-index:5}
+#topbar .logo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:16.5px;letter-spacing:-.2px}
+#topbar .logo .badge{width:26px;height:26px;border-radius:50%;background:var(--red);display:grid;place-items:center;flex:none}
+#topbar .logo .badge svg{width:13px;height:13px;fill:#fff}
+#topbar .spacer{flex:1}
+#topbar .conn{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted2)}
+#topbar .conn .dot{width:7px;height:7px;border-radius:50%;background:#5a5a5a}
+#topbar .conn.on .dot{background:#3ad17a;box-shadow:0 0 8px #3ad17a}
+#topbar .ibtn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:var(--text)}
+
+#scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  padding-bottom:calc(var(--bar) + var(--tab) + 12px)}
+.view{display:none}
+.view.active{display:block}
+
+/* ---------- raflar ---------- */
+.shelf{margin:0 0 22px}
+.shelf .stitle{display:flex;align-items:center;justify-content:space-between;padding:0 14px 10px}
+.shelf .stitle h2{margin:0;font-size:17px;font-weight:700;letter-spacing:-.2px}
+.hrow{display:flex;gap:12px;overflow-x:auto;padding:0 14px 4px;scroll-snap-type:x proximity;
+  scrollbar-width:none}
+.hrow::-webkit-scrollbar{display:none}
+.card{flex:none;width:146px;scroll-snap-align:start;text-align:left}
+.card .ph{width:146px;height:146px;border-radius:8px;object-fit:cover;background:var(--surface2);display:block}
+.card .ct{font-size:13.5px;font-weight:600;margin-top:8px;line-height:1.3;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card .cs{font-size:12px;color:var(--muted);margin-top:3px;
+  display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.card.playing .ct{color:var(--red)}
+
+/* kitaplik izgara */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(144px,1fr));gap:16px 12px;padding:4px 14px 8px}
+.grid .card{width:100%}
+.grid .card .ph{width:100%;height:auto;aspect-ratio:1}
+
+/* liste detay */
+#listHead{padding:0 14px 12px}
+#listHead .lbar{height:38px;display:flex;align-items:center}
+#listHead .lrow{display:flex;gap:14px;align-items:flex-end}
+#listHead img.lc{width:112px;height:112px;border-radius:8px;object-fit:cover;background:var(--surface2);flex:none}
+#listHead .li{min-width:0;display:flex;flex-direction:column}
+#listHead h1{margin:0 0 6px;font-size:19px;line-height:1.25;
+  display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+#listHead .lm{font-size:12px;color:var(--muted)}
+#listHead .playall{margin-top:10px;display:inline-flex;align-items:center;gap:8px;background:#fff;color:#000;
+  font-weight:700;font-size:13px;padding:9px 16px;border-radius:99px;align-self:flex-start}
+#listHead .playall svg{width:16px;height:16px;fill:#000}
+#listHead .back{width:38px;height:38px;display:grid;place-items:center;color:#fff;margin-left:-10px}
+.track{display:flex;align-items:center;gap:12px;padding:8px 14px;width:100%;text-align:left}
+.track:active{background:#ffffff10}
+.track .n{width:16px;font-size:12.5px;color:var(--muted2);font-variant-numeric:tabular-nums;flex:none}
+.track img{width:44px;height:44px;border-radius:4px;object-fit:cover;background:var(--surface2);flex:none}
+.track .ph2{width:44px;height:44px;border-radius:4px;background:var(--surface2);flex:none}
+.track .ti{min-width:0;flex:1}
+.track .ti b{display:block;font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.track .ti span{display:block;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+.track.on .ti b{color:var(--red)}
+
+/* ---------- arama ---------- */
+#searchWrap{padding:2px 14px 12px}
+.searchbox{display:flex;align-items:center;gap:10px;background:var(--surface);border-radius:10px;padding:11px 14px}
+.searchbox svg{width:20px;height:20px;fill:var(--muted);flex:none}
+.searchbox input{flex:1;background:none;border:0;outline:0;color:#fff;font-size:15px;min-width:0}
+.searchbox input::placeholder{color:var(--muted2)}
+
+/* ---------- bos / yukleniyor ---------- */
+.empty{padding:26px 18px;color:var(--muted2);font-size:13px;text-align:center;line-height:1.6}
+.skel{width:146px;height:146px;border-radius:8px;background:linear-gradient(100deg,#1a1a1a 20%,#242424 40%,#1a1a1a 60%);
+  background-size:200% 100%;animation:sk 1.2s infinite}
+@keyframes sk{0%{background-position:150% 0}100%{background-position:-50% 0}}
+
+/* ---------- mini oynatici ---------- */
+#mini{position:absolute;left:0;right:0;bottom:var(--tab);height:var(--bar);
+  background:#1a1a1a;border-top:1px solid var(--line);display:flex;align-items:center;gap:10px;
+  padding:0 8px;z-index:6}
+#mini .prog{position:absolute;top:-1px;left:0;height:2px;background:#ffffff28;width:100%}
+#mini .prog i{display:block;height:100%;background:var(--red);width:0}
+#mini img{width:46px;height:46px;border-radius:4px;object-fit:cover;background:var(--surface2);flex:none}
+#mini .mi{min-width:0;flex:1;text-align:left}
+#mini .mi b{display:block;font-size:13.5px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mini .mi span{display:block;font-size:11.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px}
+#mini button.pp{width:44px;height:44px;display:grid;place-items:center;flex:none;color:#fff}
+#mini button.pp svg{width:26px;height:26px;fill:#fff}
+
+/* ---------- sekme cubugu ---------- */
+#tabbar{position:absolute;left:0;right:0;bottom:0;height:calc(var(--tab) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);background:#0a0a0a;border-top:1px solid var(--line);
+  display:flex;z-index:7}
+#tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  color:var(--muted2);font-size:10.5px;font-weight:500}
+#tabbar button svg{width:23px;height:23px;fill:currentColor}
+#tabbar button.on{color:#fff}
+#tabbar button.on svg{fill:var(--red)}
+
+/* ---------- tam ekran oynatici ---------- */
+#player{position:fixed;inset:0;z-index:20;background:var(--bg);
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.3,.7,.2,1);
+  display:flex;flex-direction:column;justify-content:center;
+  --art:max(170px, min(86vw, 420px, calc(100vh - 430px)));
+  padding:calc(10px + env(safe-area-inset-top)) 22px calc(20px + env(safe-area-inset-bottom))}
+#player.open{transform:translateY(0)}
+#player .pbg{position:absolute;inset:-20%;background-position:center;background-size:cover;
+  filter:blur(70px) saturate(1.4);opacity:.35;z-index:0;pointer-events:none}
+#player .pbg::after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 20%,#03030344,#030303 72%)}
+#player > *{position:relative;z-index:1;flex:none}
+#player > .art{flex:1 1 auto}
+#player .phead{position:absolute;top:calc(6px + env(safe-area-inset-top));left:22px;right:22px;
+  display:flex;align-items:center;justify-content:space-between;color:var(--muted);font-size:12px}
+#player .phead button{width:40px;height:40px;display:grid;place-items:center;color:#fff}
+#player .art{flex:none;width:var(--art);height:var(--art);
+  margin:6px auto 12px;border-radius:12px;overflow:hidden;
+  background:var(--surface2);box-shadow:0 20px 50px -20px #000}
+#player .art img{width:100%;height:100%;object-fit:cover;display:block}
+#player .ptitle{margin:14px 0 4px;font-size:21px;font-weight:700;line-height:1.25;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+#player .partist{margin:0;font-size:13.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#player input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:24px;background:transparent;display:block}
+#player input[type=range]::-webkit-slider-runnable-track{height:3px;border-radius:99px;
+  background:linear-gradient(to right,#fff var(--p,0%),#4d4d4d var(--p,0%))}
+#player input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+  background:#fff;margin-top:-4.5px}
+#player .times{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:-4px;
+  font-variant-numeric:tabular-nums}
+#player .pctrl{display:flex;align-items:center;justify-content:center;gap:26px;margin:8px 0 4px}
+#player .pctrl button{width:56px;height:56px;display:grid;place-items:center;color:#fff}
+#player .pctrl button svg{width:34px;height:34px;fill:#fff}
+#player .pctrl .big{width:72px;height:72px;border-radius:50%;background:#fff}
+#player .pctrl .big svg{width:32px;height:32px;fill:#000}
+#player .pvol{display:flex;align-items:center;gap:12px;margin-top:6px;color:var(--muted)}
+#player .pvol svg{width:20px;height:20px;fill:currentColor;flex:none}
+#player .pfoot{margin-top:8px;text-align:center;font-size:10.5px;color:#4a4a4a}
+
+#toast{position:fixed;left:50%;bottom:calc(var(--bar) + var(--tab) + 18px);transform:translate(-50%,20px);
+  background:#e8e8e8;color:#000;padding:10px 16px;border-radius:8px;font-size:13px;font-weight:500;
+  opacity:0;transition:.25s;z-index:30;pointer-events:none;box-shadow:0 8px 24px #000a}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- uygulama kapali uyarisi ---------- */
+#offline{display:none;margin:8px 14px 6px;background:#1c1c1c;border:1px solid #2f2f2f;border-radius:12px;
+  padding:12px 14px;align-items:center;gap:12px}
+#offline.show{display:flex}
+#offline .txt{flex:1;min-width:0}
+#offline b{display:block;font-size:13.5px;font-weight:600}
+#offline span{display:block;font-size:11.5px;color:#8f8f8f;margin-top:3px;line-height:1.4}
+#offline button{flex:none;background:#fff;color:#000;font-weight:700;font-size:12.5px;
+  padding:9px 18px;border-radius:99px}
+
+/* ---------- ayarlar sayfasi ---------- */
+#sheet{position:fixed;inset:0;z-index:40;display:none;background:rgba(0,0,0,.55)}
+#sheet.open{display:block}
+#sheet .card{position:absolute;left:0;right:0;bottom:0;width:auto;max-height:88%;overflow-y:auto;background:#1c1c1c;
+  border-radius:20px 20px 0 0;padding:6px 0 calc(18px + env(safe-area-inset-bottom));
+  animation:up .2s cubic-bezier(.2,.7,.3,1)}
+@keyframes up{from{transform:translateY(60px);opacity:.5}to{transform:none;opacity:1}}
+#sheet .grab{width:38px;height:4px;border-radius:2px;background:#4a4a4a;margin:8px auto 8px}
+#sheet h3{margin:0;padding:2px 20px 10px;font-size:18px;font-weight:700}
+#sheet .row{display:flex;align-items:center;gap:12px;padding:14px 20px;border-top:1px solid #2a2a2a;
+  width:100%;text-align:left;background:none;color:#fff;font-size:14px}
+#sheet .row .lbl{flex:1;min-width:0}
+#sheet .row .lbl small{display:block;color:#8f8f8f;font-size:11.5px;margin-top:3px;line-height:1.4}
+#sheet .row .val{font-size:12px;color:#8f8f8f;max-width:52%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#sheet .row svg{width:20px;height:20px;fill:#cfcfcf;flex:none}
+#sheet .row:active{background:#ffffff10}
+#sheet input{background:#282828;border:0;border-radius:8px;color:#fff;padding:11px 13px;font-size:13.5px;
+  outline:0;flex:1;min-width:0}
+#sheet .save{background:#fff;color:#000;font-weight:700;font-size:12.5px;padding:11px 16px;border-radius:8px}
+#sheet .seg{display:flex;gap:8px;padding:4px 20px 14px}
+#sheet .seg button{flex:1;padding:11px 10px;border-radius:10px;background:#282828;color:#cfcfcf;
+  font-size:12.5px;font-weight:600}
+#sheet .seg button.on{background:#fff;color:#000}
+#sheet .hint{font-size:11.5px;color:#6e6e6e;padding:0 20px 12px;line-height:1.5}
+#sheet .foot{text-align:center;font-size:11px;color:#5a5a5a;padding:14px 20px 0}
+#sheet .langsel{background:#282828;color:#fff;border:0;border-radius:8px;padding:9px 12px;font-size:13px;
+  font-family:inherit;outline:0;max-width:58%}
+</style>
+</head>
+<body>
+
+<svg style="display:none" xmlns="http://www.w3.org/2000/svg">
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><path d="M6 5h4v14H6zm8 0h4v14h-4z"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6h2v12h-2z"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M18 18V6l-8.5 6 8.5 6zM6 6h2v12H6z"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M7.4 8.6 12 13.2l4.6-4.6L18 10l-6 6-6-6z"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M12 3 2 12h3v8h6v-5h2v5h6v-8h3z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><path d="M10 2a8 8 0 1 0 4.9 14.3l5.4 5.4 1.4-1.4-5.4-5.4A8 8 0 0 0 10 2zm0 2a6 6 0 1 1 0 12 6 6 0 0 1 0-12z"/></symbol>
+  <symbol id="i-lib" viewBox="0 0 24 24"><path d="M4 3h2v18H4zm4 0h2v18H8zm5 .6 4.6 17.4-1.9.5L11.1 4.1z"/></symbol>
+  <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zm-2.5-9v2.1a6.5 6.5 0 0 1 0 13.8V21a8.5 8.5 0 0 0 0-18z"/></symbol>
+  <symbol id="i-mute" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9H4zm15.5-1.1-1.4-1.4-2.6 2.6-2.6-2.6-1.4 1.4 2.6 2.6-2.6 2.6 1.4 1.4 2.6-2.6 2.6 2.6 1.4-1.4-2.6-2.6z"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M17.6 6.4A8 8 0 1 0 20 12h-2a6 6 0 1 1-1.8-4.3L13 11h7V4z"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M20 11H7.8l5.6-5.6L12 4l-8 8 8 8 1.4-1.4L7.8 13H20z"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M19.4 13a7.9 7.9 0 0 0 0-2l2-1.6-2-3.4-2.4 1a8 8 0 0 0-1.7-1L15 3H9l-.3 2.6a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L4.6 11a7.9 7.9 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a8 8 0 0 0 1.7 1L9 21h6l.3-2.6a8 8 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 0 0-5-5.9V4a1 1 0 1 0-2 0v1.1A6 6 0 0 0 6 11v5l-2 2v1h16v-1z"/></symbol>
+  <symbol id="i-battery" viewBox="0 0 24 24"><path d="M16 4h-2V2H6v20h8v-2h2a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-4 15H8V5h4z"/></symbol>
+  <symbol id="i-bug" viewBox="0 0 24 24"><path d="M20 8h-2.8a6 6 0 0 0-1.6-2.3l1.6-1.6-1.4-1.4-2 2A5.9 5.9 0 0 0 12 4a5.9 5.9 0 0 0-1.8.6l-2-2L6.8 4l1.6 1.6A6 6 0 0 0 6.8 8H4v2h2.1a7 7 0 0 0 0 2H4v2h2.8a6 6 0 0 0 10.4 0H20v-2h-2.1a7 7 0 0 0 0-2H20z"/></symbol>
+</svg>
+
+<div id="app">
+  <div id="topbar">
+    <div class="logo"><span class="badge"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>YT Music</div>
+    <div class="spacer"></div>
+    <div class="conn" id="conn"><span class="dot"></span><span id="connText">…</span></div>
+    <button class="ibtn" id="gear" aria-label="Ayarlar"><svg class="ic" viewBox="0 0 24 24"><use href="#i-gear"/></svg></button>
+    <button class="ibtn" id="refreshBtn" aria-label="Yenile"><svg class="ic" viewBox="0 0 24 24"><use href="#i-refresh"/></svg></button>
+  </div>
+
+  <div id="scroll">
+    <div id="offline">
+      <div class="txt">
+        <b data-i18n="off_title">Bilgisayarda YouTube Music kapalı</b>
+        <span id="offText" data-i18n="off_sub">Kumanda etmek için uygulamayı aç</span>
+      </div>
+      <button id="launchBtn" data-i18n="open_btn">Aç</button>
+    </div>
+    <section class="view active" id="view-home"></section>
+
+    <section class="view" id="view-search">
+      <div id="searchWrap">
+        <div class="searchbox">
+          <svg viewBox="0 0 24 24"><use href="#i-search"/></svg>
+          <input id="q" data-i18n-ph="search_ph" placeholder="Şarkı, sanatçı, albüm ara" autocomplete="off" enterkeyhint="search">
+        </div>
+      </div>
+      <div id="searchResults"></div>
+    </section>
+
+    <section class="view" id="view-library"></section>
+
+    <section class="view" id="view-list">
+      <div id="listHead"></div>
+      <div id="listTracks"></div>
+    </section>
+  </div>
+
+  <div id="mini">
+    <div class="prog"><i id="miniProg"></i></div>
+    <img id="miniArt" alt="">
+    <button class="mi" id="miniOpen">
+      <b id="miniTitle">—</b>
+      <span id="miniSub"></span>
+    </button>
+    <button class="pp" id="miniPP" aria-label="Çal / Duraklat"><svg viewBox="0 0 24 24" id="miniPPIcon"><use href="#i-play"/></svg></button>
+    <button class="pp" id="miniNext" aria-label="Sonraki"><svg viewBox="0 0 24 24"><use href="#i-next"/></svg></button>
+  </div>
+
+  <nav id="tabbar">
+    <button class="on" data-tab="home"><svg viewBox="0 0 24 24"><use href="#i-home"/></svg><span data-i18n="home">Ana sayfa</span></button>
+    <button data-tab="search"><svg viewBox="0 0 24 24"><use href="#i-search"/></svg><span data-i18n="discover">Keşfet</span></button>
+    <button data-tab="library"><svg viewBox="0 0 24 24"><use href="#i-lib"/></svg><span data-i18n="library">Kitaplık</span></button>
+  </nav>
+</div>
+
+<div id="player">
+  <div class="pbg" id="pbg"></div>
+  <div class="phead">
+    <button id="pclose" aria-label="Kapat"><svg class="ic" viewBox="0 0 24 24"><use href="#i-down"/></svg></button>
+    <span id="pdevice">bilgisayar</span>
+    <span style="width:40px"></span>
+  </div>
+  <div class="art"><img id="partImg" alt=""></div>
+  <div class="ptitle" id="ptitle">—</div>
+  <p class="partist" id="partist"></p>
+  <input type="range" id="pseek" min="0" max="1000" value="0">
+  <div class="times"><span id="ppos">0:00</span><span id="pdur">0:00</span></div>
+  <div class="pctrl">
+    <button id="pprev" aria-label="Önceki"><svg viewBox="0 0 24 24"><use href="#i-prev"/></svg></button>
+    <button class="big" id="ppp" aria-label="Çal / Duraklat"><svg viewBox="0 0 24 24" id="pppIcon"><use href="#i-play"/></svg></button>
+    <button id="pnext" aria-label="Sonraki"><svg viewBox="0 0 24 24"><use href="#i-next"/></svg></button>
+  </div>
+  <div class="pvol">
+    <button id="pmute" aria-label="Sessiz"><svg id="pvolIcon" viewBox="0 0 24 24"><use href="#i-vol"/></svg></button>
+    <input type="range" id="pvol" min="0" max="100" value="50">
+  </div>
+  <div class="pfoot" id="pfoot"></div>
+</div>
+
+<div id="sheet">
+  <div class="card">
+    <div class="grab"></div>
+    <h3 data-i18n="settings">Ayarlar</h3>
+
+    <div class="row native" style="border-top:0;padding-bottom:4px">
+      <div class="lbl"><span data-i18n="server">Sunucu adresi</span><small data-i18n="server_sub">Bilgisayardaki köprünün adresi</small></div>
+    </div>
+    <div class="row native" style="border-top:0;padding-top:0">
+      <input id="srvInput" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://192.168.1.231:8777">
+      <button class="save" id="srvSave" data-i18n="save">Kaydet</button>
+    </div>
+
+    <div class="row native"><div class="lbl"><span data-i18n="notif_view">Bildirim görünümü</span><small data-i18n="notif_view_sub">Kilit ekranı ve panel</small></div></div>
+    <div class="seg native">
+      <button id="segMedia" data-mode="media" data-i18n="media_card">Medya kartı</button>
+      <button id="segPlain" data-mode="plain" data-i18n="plain_notif">Normal bildirim</button>
+    </div>
+    <div class="hint native" data-i18n="notif_hint">Medya kartı: kapak + süre çubuğu, kilit ekranı widget'ı.</div>
+
+    <button class="row native" id="rowTest">
+      <svg><use href="#i-bell"/></svg>
+      <div class="lbl"><span data-i18n="test_notif">Test bildirimi</span><small data-i18n="test_sub">Gönder</small></div>
+    </button>
+
+    <button class="row native" id="rowBattery">
+      <svg><use href="#i-battery"/></svg>
+      <div class="lbl"><span data-i18n="battery">Pil optimizasyonundan çıkar</span><small data-i18n="battery_sub">Servis uyutulmasın</small></div>
+    </button>
+
+    <button class="row native" id="rowDiag">
+      <svg><use href="#i-bug"/></svg>
+      <div class="lbl"><span data-i18n="diag">Bildirim teşhisi</span><small data-i18n="diag_sub">Durumu bilgisayara raporla</small></div>
+    </button>
+
+    <button class="row native" id="rowService">
+      <div class="lbl"><span data-i18n="service">Arka plan kontrolleri</span><small id="svcState" data-on="1">açık</small></div>
+    </button>
+
+    <div class="row">
+      <div class="lbl" data-i18n="language">Dil</div>
+      <select id="langSel" class="langsel"></select>
+    </div>
+
+    <div class="foot" id="sheetFoot"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="/i18n.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* ---------------- dil ---------------- */
+function pickLang(){
+  try{
+    const saved = localStorage.getItem('lang');
+    if(saved && window.I18N[saved]) return saved;
+  }catch(e){}
+  const nav = (navigator.language || 'en').toLowerCase().split('-')[0];
+  return window.I18N[nav] ? nav : 'en';
+}
+let lang = pickLang();
+const t = (k, vars) => {
+  let d = (window.I18N[lang] && window.I18N[lang][k]) || (window.I18N.en && window.I18N.en[k]) || k;
+  if(vars) for(const n in vars) d = d.split('{' + n + '}').join(vars[n]);
+  return d;
+};
+function applyStatic(){
+  document.documentElement.lang = lang;
+  document.documentElement.dir = (window.I18N_RTL && window.I18N_RTL[lang]) ? 'rtl' : 'ltr';
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.dataset.i18n); });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { el.placeholder = t(el.dataset.i18nPh); });
+  const sel = $('langSel');
+  if(sel){
+    if(!sel.options.length){
+      const order = window.I18N_ORDER || Object.keys(window.I18N_NAMES || {});
+      const flags = window.I18N_FLAGS || {};
+      order.forEach(code => {
+        const o = document.createElement('option');
+        o.value = code;
+        o.textContent = (flags[code] ? flags[code] + '  ' : '') + (window.I18N_NAMES[code] || code);
+        sel.appendChild(o);
+      });
+    }
+    sel.value = lang;
+  }
+  const sv = $('svcState');
+  if(sv) sv.textContent = sv.dataset.on === '1' ? t('service_on') : t('service_off');
+}
+function setLang(l){
+  if(!window.I18N[l]) return;
+  lang = l;
+  try{ localStorage.setItem('lang', l); }catch(e){}
+  applyStatic();
+  document.querySelectorAll('.view').forEach(v => v.dataset.loaded = '');
+  if(view === 'library') loadLibrary(); else if(view === 'home') loadHome();
+  if(state) renderNow(state);
+}
+const E = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt = s => { s = Math.max(0, Math.floor(s||0)); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); };
+
+let state = null, view = 'home', dragging = false, volDragging = false, searchTimer = null;
+
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('show'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('show'),2100); }
+
+const TOKEN = window.__TOKEN__ || '';
+function withToken(url){
+  if(!TOKEN) return url;
+  return url + (url.indexOf('?') >= 0 ? '&' : '?') + 't=' + encodeURIComponent(TOKEN);
+}
+
+async function api(path, body){
+  try{
+    const r = await fetch(withToken(path), body===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    const j = await r.json();
+    return j;
+  }catch(e){ setConn(false); return {ok:false,error:t('unreachable')}; }
+}
+
+/* ---------------- baglanti + simdi calan ---------------- */
+function setConn(ok){
+  $('conn').classList.toggle('on', ok);
+  $('connText').textContent = ok ? t('conn_ok') : t('conn_no');
+}
+
+function renderNow(s){
+  state = s;
+  setConn(true);   // köprü yanıt veriyorsa bağlantı var
+  const off = $('offline');
+  if(off) off.classList.toggle('show', !s.online);
+  if(!s.online) window._wasOffline = true;
+  else if(window._wasOffline){                 // baglanti geri geldi: kart + icerik geri gelsin
+    window._wasOffline = false;
+    document.querySelectorAll('.view').forEach(v => v.dataset.loaded = '');
+    if(view === 'library') loadLibrary(); else if(view === 'home') loadHome();
+    try { if(typeof Native !== 'undefined' && Native.ensureService) Native.ensureService(); } catch(e){}
+  }
+  $('miniTitle').textContent = s.title || t('nothing_playing');
+  $('miniSub').textContent = s.byline || (s.online ? '' : t('unreachable'));
+  if(s.art){ if($('miniArt').dataset.u !== s.art){ $('miniArt').src = s.art; $('miniArt').dataset.u = s.art; } }
+  else if($('miniArt').dataset.u){ $('miniArt').removeAttribute('src'); $('miniArt').dataset.u=''; }
+  $('miniPPIcon').innerHTML = '<use href="#' + (s.playing ? 'i-pause' : 'i-play') + '"/>';
+  $('miniProg').style.width = s.duration > 0 ? (100 * s.position / s.duration) + '%' : '0%';
+
+  $('ptitle').textContent = s.title || '—';
+  $('partist').textContent = s.artist ? (s.artist + (s.album ? ' • ' + s.album : '')) : (s.byline || '');
+  if(s.art && $('partImg').dataset.u !== s.art){
+    $('partImg').src = s.art; $('pbg').style.backgroundImage = 'url("'+s.art+'")'; $('partImg').dataset.u = s.art;
+  }
+  $('pppIcon').innerHTML = '<use href="#' + (s.playing ? 'i-pause' : 'i-play') + '"/>';
+  if(!dragging){
+    const p = s.duration > 0 ? (1000 * s.position / s.duration) : 0;
+    $('pseek').value = p;
+    $('pseek').style.setProperty('--p', (p/10) + '%');
+    $('ppos').textContent = fmt(s.position);
+  }
+  $('pdur').textContent = fmt(s.duration);
+  if(!volDragging){
+    const v = s.muted ? 0 : Math.round(s.volume_pct != null ? s.volume_pct : (s.volume||0)*100);
+    $('pvol').value = v; $('pvol').style.setProperty('--p', v + '%');
+  }
+  $('pvolIcon').innerHTML = '<use href="#' + ((s.muted || s.volume === 0) ? 'i-mute' : 'i-vol') + '"/>';
+
+  document.querySelectorAll('.track.on').forEach(e => e.classList.remove('on'));
+  let row = s.video_id ? document.querySelector('.track[data-id="' + s.video_id + '"]') : null;
+  if(!row && s.title){                       // calma liste icinde baslarsa url'de v= olmaz
+    row = [...document.querySelectorAll('.track')].find(t => {
+      const b = t.querySelector('.ti b');
+      return b && b.textContent.trim() === s.title.trim();
+    }) || null;
+  }
+  if(row) row.classList.add('on');
+}
+
+async function poll(){
+  const j = await api('/api/state');
+  if(j.state) renderNow(j.state); else setConn(false);
+}
+setInterval(poll, 1000);
+
+/* ---------------- gezinme ---------------- */
+function showView(name){
+  view = name;
+  document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id === 'view-' + name));
+  document.querySelectorAll('#tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+  $('scroll').scrollTop = 0;
+  if(name === 'home' && !$('view-home').dataset.loaded) loadHome();
+  if(name === 'library' && !$('view-library').dataset.loaded) loadLibrary();
+}
+document.querySelectorAll('#tabbar button').forEach(b => b.onclick = () => showView(b.dataset.tab));
+
+/* ---------------- kartlar ---------------- */
+function ph(it){
+  const t = (it.title||'?').trim();
+  const ini = t.split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase() || '♪';
+  const h = [...t].reduce((a,c)=>a+c.charCodeAt(0),0) % 360;
+  return `<div class="ph" style="display:grid;place-items:center;background:linear-gradient(135deg,hsl(${h} 42% 26%),hsl(${(h+40)%360} 38% 14%));font-weight:700;color:#ffffffcc;font-size:26px">${E(ini)}</div>`;
+}
+function cardHtml(it){
+  return `<button class="card" data-href="${E(it.href)}" data-kind="${E(it.kind)}" data-id="${E(it.id)}">
+    ${it.img && !it.img.startsWith('data:') ? `<img class="ph" src="${E(it.img)}" loading="lazy" alt="">` : ph(it)}
+    <div class="ct">${E(it.title)}</div><div class="cs">${E(it.sub||'')}</div></button>`;
+}
+function wireCards(root){
+  root.querySelectorAll('.card').forEach(c => {
+    c.onclick = () => {
+      if(c.dataset.kind === 'song') playSong(c.dataset.id, null);
+      else openList(c.dataset.href);
+    };
+  });
+}
+
+async function loadHome(){
+  const box = $('view-home');
+  box.innerHTML = '<div class="shelf"><div class="stitle"><h2>Ana sayfa</h2></div><div class="hrow">'
+    + '<div class="skel"></div><div class="skel"></div><div class="skel"></div></div></div>';
+  const j = await api('/api/home');
+  if(!j.shelves || !j.shelves.length){
+    box.innerHTML = '<div class="empty">' + t('home_failed') + '</div>';
+    return;
+  }
+  box.dataset.loaded = '1';
+  box.innerHTML = j.shelves.map(sh => `<div class="shelf">
+      <div class="stitle"><h2>${E(sh.title)}</h2></div>
+      <div class="hrow">${sh.items.map(cardHtml).join('')}</div>
+    </div>`).join('');
+  wireCards(box);
+}
+
+async function loadLibrary(){
+  const box = $('view-library');
+  box.innerHTML = '<div class="empty">' + t('loading') + '</div>';
+  const j = await api('/api/library');
+  if(!j.items || !j.items.length){
+    box.innerHTML = '<div class="empty">' + t('library_empty') + '</div>';
+    return;
+  }
+  box.dataset.loaded = '1';
+  box.innerHTML = '<div class="shelf"><div class="stitle"><h2>' + E(t('library_title')) + '</h2></div>'
+    + '<div class="grid">' + j.items.map(cardHtml).join('') + '</div></div>';
+  wireCards(box);
+}
+
+/* ---------------- liste detayi ---------------- */
+async function openList(href){
+  showView('list');
+  $('listHead').innerHTML = '<div class="empty">' + t('loading') + '</div>';
+  $('listTracks').innerHTML = '';
+  const j = await api('/api/list', {href});
+  if(!j.items || !j.items.length){
+    $('listHead').innerHTML = '<div class="empty">' + t('list_failed') + '</div>';
+    return;
+  }
+  $('listHead').innerHTML = `
+    <div class="lbar"><button class="back" id="listBack" aria-label="Geri">
+      <svg class="ic" viewBox="0 0 24 24"><use href="#i-back"/></svg></button></div>
+    <div class="lrow">
+      ${j.cover ? `<img class="lc" src="${E(j.cover)}" alt="">` : ''}
+      <div class="li">
+        <h1>${E(j.title || 'Liste')}</h1>
+        <div class="lm">${E(t('songs_count', {n: j.items.length}))}</div>
+        <button class="playall" id="playAll"><svg viewBox="0 0 24 24"><use href="#i-play"/></svg>${E(t('play_all'))}</button>
+      </div>
+    </div>`;
+  $('listTracks').innerHTML = j.items.map((it, i) => `
+    <button class="track" data-id="${E(it.id)}">
+      <span class="n">${i+1}</span>
+      ${it.img ? `<img src="${E(it.img)}" loading="lazy" alt="">` : '<span class="ph2"></span>'}
+      <span class="ti"><b>${E(it.title)}</b><span>${E(it.sub||'')}</span></span>
+    </button>`).join('');
+  $('listTracks').querySelectorAll('.track').forEach(t => t.onclick = () => playSong(t.dataset.id, t));
+  const back = $('listBack');
+  if(back) back.onclick = () => showView('home');
+  const all = $('playAll');
+  if(all) all.onclick = () => { if(j.items[0]) playSong(j.items[0].id, null); };
+  poll();
+}
+
+/* ---------------- komutlar ---------------- */
+async function playSong(id, el){
+  if(el) el.classList.add('on');
+  toast(t('playing'));
+  const j = await api('/api/play', {id});
+  if(j.state) renderNow(j.state);
+}
+
+const doToggle = async () => {
+  if(state){ state.playing = !state.playing; renderNow(state); }
+  const j = await api('/api/toggle'); if(j.state) renderNow(j.state);
+};
+$('miniPP').onclick = doToggle;
+$('ppp').onclick = doToggle;
+const doNext = async () => { const j = await api('/api/next'); if(j.state) renderNow(j.state); };
+$('miniNext').onclick = doNext;
+$('pnext').onclick = doNext;
+$('pprev').onclick = async () => { const j = await api('/api/prev'); if(j.state) renderNow(j.state); };
+$('pmute').onclick = async () => { const j = await api('/api/mute'); if(j.state) renderNow(j.state); };
+
+$('miniOpen').onclick = () => { $('player').classList.add('open'); };
+$('pclose').onclick = () => { $('player').classList.remove('open'); };
+
+/* sarma */
+$('pseek').addEventListener('pointerdown', () => dragging = true);
+$('pseek').addEventListener('input', e => {
+  e.target.style.setProperty('--p', (e.target.value/10) + '%');
+  if(state && state.duration) $('ppos').textContent = fmt(state.duration * e.target.value/1000);
+});
+$('pseek').addEventListener('change', async e => {
+  const t = state && state.duration ? state.duration * e.target.value/1000 : 0;
+  dragging = false; await api('/api/seek', {t}); poll();
+});
+$('pseek').addEventListener('pointerup', () => setTimeout(()=>dragging=false, 400));
+
+/* ses */
+$('pvol').addEventListener('pointerdown', () => volDragging = true);
+$('pvol').addEventListener('input', e => {
+  e.target.style.setProperty('--p', e.target.value + '%');
+  clearTimeout(window._vt);
+  const pct = +e.target.value;
+  window._vt = setTimeout(() => api('/api/volume', {pct}), 90);
+});
+$('pvol').addEventListener('change', async e => { volDragging = false; await api('/api/volume', {pct: +e.target.value}); poll(); });
+
+/* ---------------- arama ---------------- */
+$('q').addEventListener('input', e => {
+  const q = e.target.value.trim();
+  clearTimeout(searchTimer);
+  if(q.length < 2){ $('searchResults').innerHTML = ''; return; }
+  searchTimer = setTimeout(() => doSearch(q), 450);
+});
+$('q').addEventListener('keydown', e => {
+  if(e.key === 'Enter'){ e.preventDefault(); e.target.blur(); clearTimeout(searchTimer); doSearch(e.target.value.trim()); }
+});
+
+async function doSearch(q){
+  if(!q) return;
+  $('searchResults').innerHTML = '<div class="empty">' + t('searching') + '</div>';
+  const j = await api('/api/search', {q});
+  const items = j.items || [];
+  if(!items.length){ $('searchResults').innerHTML = '<div class="empty">' + t('no_results') + '</div>'; return; }
+  $('searchResults').innerHTML = items.map(it => `
+    <button class="track" data-id="${E(it.id)}">
+      ${it.img ? `<img src="${E(it.img)}" loading="lazy" alt="">` : '<span class="ph2"></span>'}
+      <span class="ti"><b>${E(it.title)}</b><span>${E(it.sub||'')}</span></span>
+    </button>`).join('');
+  $('searchResults').querySelectorAll('.track').forEach(t => t.onclick = () => playSong(t.dataset.id, t));
+}
+
+/* ---------------- tazele ---------------- */
+$('refreshBtn').onclick = () => {
+  document.querySelectorAll('.view').forEach(v => v.dataset.loaded = '');
+  if(view === 'library') loadLibrary(); else loadHome();
+  toast(t('refreshed'));
+};
+
+/* ---------------- ayarlar ---------------- */
+const hasNative = (typeof window.Native !== 'undefined' && !!window.Native);
+
+function nativeInfo(){
+  if(!hasNative) return {};
+  try { return JSON.parse(Native.info()); } catch(e){ return {}; }
+}
+
+function openSheet(){
+  const i = hasNative ? nativeInfo() : {};
+  document.querySelectorAll('#sheet .native').forEach(el => { el.style.display = hasNative ? '' : 'none'; });
+  if(!hasNative){ $('sheetFoot').textContent = 'YT Music Remote · web'; }
+  if(hasNative){
+  $('srvInput').value = i.server || '';
+  const mode = i.notifMode || 'media';
+  $('segMedia').classList.toggle('on', mode === 'media');
+  $('segPlain').classList.toggle('on', mode === 'plain');
+  $('svcState').dataset.on = i.serviceRunning ? '1' : '0';
+  $('svcState').textContent = i.serviceRunning ? t('service_on') : t('service_off');
+  $('sheetFoot').textContent = [i.model, 'v' + (i.version || ''), 'Android ' + (i.os || i.sdk || '')].filter(Boolean).join(' • ');
+  }
+  $('sheet').classList.add('open');
+  try { Native.setSheet(true); } catch(e){}
+}
+
+window.closeSheet = function(){
+  $('sheet').classList.remove('open');
+  try { if(hasNative) Native.setSheet(false); } catch(e){}
+};
+
+$('sheet').addEventListener('click', e => { if(e.target.id === 'sheet') window.closeSheet(); });
+$('gear').onclick = openSheet;
+$('srvSave').onclick = () => {
+  const v = $('srvInput').value.trim();
+  if(!v){ toast(t('addr_empty')); return; }
+  if(hasNative) Native.setServer(v); else toast(t('native_only'));
+};
+document.querySelectorAll('#sheet .seg button').forEach(b => b.onclick = () => {
+  if(!hasNative) return;
+  Native.setNotifMode(b.dataset.mode);
+  $('segMedia').classList.toggle('on', b.dataset.mode === 'media');
+  $('segPlain').classList.toggle('on', b.dataset.mode === 'plain');
+});
+$('rowTest').onclick = () => { if(hasNative) Native.testNotification(); else toast(t('native_only')); };
+$('rowBattery').onclick = () => { if(hasNative) Native.batterySettings(); };
+$('rowDiag').onclick = () => { if(hasNative) Native.diag(); };
+$('rowService').onclick = () => {
+  if(!hasNative) return;
+  Native.toggleServiceAction();
+  setTimeout(() => {
+    const on = nativeInfo().serviceRunning;
+    $('svcState').dataset.on = on ? '1' : '0';
+    $('svcState').textContent = on ? t('service_on') : t('service_off');
+  }, 1200);
+};
+
+/* ---------------- uygulamayi telefondan ac ---------------- */
+$('launchBtn').onclick = async () => {
+  const btn = $('launchBtn');
+  btn.textContent = '…';
+  let j = await api('/api/launch', {});
+  if(j.need_restart){
+    if(confirm(t('need_restart_q'))){
+      j = await api('/api/launch', {restart: true});
+    } else { j = {ok:false}; }
+  }
+  if(j.ok) toast(j.already ? t('already_open') : t('launching'));
+  else if(j.error) toast(j.error);
+  btn.textContent = 'Aç';
+  setTimeout(poll, 2500);
+};
+
+$('langSel').onchange = e => setLang(e.target.value);
+applyStatic();
+
+/* ---------------- baslat ---------------- */
+poll();
+fetch('/api/info').then(r=>r.json()).then(j=>{
+  if(j.device) $('pdevice').textContent = j.device;
+  if(j.url) $('pfoot').textContent = j.url;
+}).catch(()=>{ $('pfoot').textContent = location.origin; });
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('/sw.js').catch(()=>{}); }
+loadHome();
+</script>
+</body>
+</html>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_name">Pilot muzyczny</string>
+    <string name="channel_plain">Pilot muzyczny (zwykły)</string>
+    <string name="action_prev">Poprzedni</string>
+    <string name="action_play">Odtwórz</string>
+    <string name="action_pause">Pauza</string>
+    <string name="action_next">Następny</string>
+    <string name="test_title">Powiadomienie testowe</string>
+    <string name="test_text">Jeśli to widzisz, powiadomienia działają.</string>
+    <string name="unreachable">brak połączenia z komputerem</string>
+</resources>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_name">Musiqi pultu</string>
+    <string name="channel_plain">Musiqi pultu (adi)</string>
+    <string name="action_prev">Əvvəlki</string>
+    <string name="action_play">Çal</string>
+    <string name="action_pause">Fasilə</string>
+    <string name="action_next">Növbəti</string>
+    <string name="test_title">Sınaq bildirişi</string>
+    <string name="test_text">Bunu görürsənsə bildirişlər işləyir.</string>
+    <string name="unreachable">kompüterə çatmaq olmur</string>
+</resources>

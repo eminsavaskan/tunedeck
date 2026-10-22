@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="channel_name">Musik-Fernbedienung</string>
+    <string name="channel_plain">Musik-Fernbedienung (normal)</string>
+    <string name="action_prev">Zurück</string>
+    <string name="action_play">Abspielen</string>
+    <string name="action_pause">Pause</string>
+    <string name="action_next">Weiter</string>
+    <string name="test_title">Testbenachrichtigung</string>
+    <string name="test_text">Wenn du das siehst, funktionieren Benachrichtigungen.</string>
+    <string name="unreachable">Rechner nicht erreichbar</string>
+</resources>

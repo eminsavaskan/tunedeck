@@ -1,0 +1,29 @@
+name: apk
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - name: Android build-tools
+        run: |
+          yes | "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null || true
+          "${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager" "platforms;android-34" "build-tools;34.0.0" > /dev/null
+      - name: Build APK
+        run: bash android/build.sh
+        env:
+          BT: "${ANDROID_HOME}/build-tools/34.0.0"
+          PLATFORM: "${ANDROID_HOME}/platforms/android-34/android.jar"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ytm-remote-apk
+          path: ytm-remote.apk
