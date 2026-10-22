@@ -15,6 +15,11 @@ Unofficial and not affiliated with Google. It doesn't bypass DRM and doesn't dow
 does automate a Google service, so use your judgement. [Limitations](#limitations) is worth a read before
 you install it.
 
+**[Download the Android app](https://github.com/eminsavaskan/tunedeck/releases/latest)** ·
+[Install on Windows](#install-on-windows-step-by-step) ·
+[Set up your phone](#set-up-your-phone) ·
+[How it works](#how-it-works)
+
 <p align="center">
   <img src="docs/screenshot.png" width="300" alt="TuneDeck controlling YouTube Music from a phone">
 </p>
