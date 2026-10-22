@@ -9,4 +9,10 @@
     <string name="test_title">إشعار تجريبي</string>
     <string name="test_text">إذا رأيت هذا فالإشعارات تعمل.</string>
     <string name="unreachable">تعذّر الوصول إلى الحاسوب</string>
+    <string name="off_title">تعذّر الوصول إلى الحاسوب</string>
+    <string name="off_hint">تأكد من اتصالك بنفس شبكة Wi-Fi وأن الجسر يعمل على الحاسوب.</string>
+    <string name="retry">إعادة المحاولة</string>
+    <string name="save_try">حفظ ومحاولة</string>
+    <string name="connecting">جارٍ الاتصال…</string>
+    <string name="action_stop">إيقاف</string>
 </resources>

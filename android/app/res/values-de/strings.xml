@@ -9,4 +9,10 @@
     <string name="test_title">Testbenachrichtigung</string>
     <string name="test_text">Wenn du das siehst, funktionieren Benachrichtigungen.</string>
     <string name="unreachable">Rechner nicht erreichbar</string>
+    <string name="off_title">Rechner nicht erreichbar</string>
+    <string name="off_hint">Prüfe, ob du im selben WLAN bist und die Bridge am Rechner läuft.</string>
+    <string name="retry">Erneut versuchen</string>
+    <string name="save_try">Speichern &amp; testen</string>
+    <string name="connecting">Verbinden…</string>
+    <string name="action_stop">Beenden</string>
 </resources>

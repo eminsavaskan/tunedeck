@@ -9,4 +9,10 @@
     <string name="test_title">测试通知</string>
     <string name="test_text">看到此条说明通知正常。</string>
     <string name="unreachable">无法连接电脑</string>
+    <string name="off_title">无法连接电脑</string>
+    <string name="off_hint">确认手机与电脑在同一 Wi-Fi，且电脑上的桥接程序正在运行。</string>
+    <string name="retry">重试</string>
+    <string name="save_try">保存并重试</string>
+    <string name="connecting">连接中…</string>
+    <string name="action_stop">停止</string>
 </resources>

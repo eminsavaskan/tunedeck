@@ -9,4 +9,10 @@
     <string name="test_title">Notificação de teste</string>
     <string name="test_text">Se você vê isto, as notificações funcionam.</string>
     <string name="unreachable">computador inacessível</string>
+    <string name="off_title">Computador inacessível</string>
+    <string name="off_hint">Verifique se você está no mesmo Wi-Fi e se a ponte está rodando no computador.</string>
+    <string name="retry">Tentar de novo</string>
+    <string name="save_try">Salvar e tentar</string>
+    <string name="connecting">Conectando…</string>
+    <string name="action_stop">Parar</string>
 </resources>

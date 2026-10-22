@@ -9,4 +9,10 @@
     <string name="test_title">Notification de test</string>
     <string name="test_text">Si vous voyez ceci, les notifications fonctionnent.</string>
     <string name="unreachable">ordinateur injoignable</string>
+    <string name="off_title">Ordinateur injoignable</string>
+    <string name="off_hint">Vérifiez que vous êtes sur le même Wi-Fi et que le pont tourne sur l\'ordinateur.</string>
+    <string name="retry">Réessayer</string>
+    <string name="save_try">Enregistrer et tester</string>
+    <string name="connecting">Connexion…</string>
+    <string name="action_stop">Arrêter</string>
 </resources>

@@ -66,6 +66,32 @@ public final class Api {
         }
     }
 
+    /** Kopru ayakta mi? Kisa zaman asimi ile tek istek atar (ag disi is parcaciginda cagrilmali). */
+    public static boolean ping(Context c) {
+        try {
+            return requestShort(c, "/api/info", 1200) != null;
+        } catch (Throwable t) {
+            return false;
+        }
+    }
+
+    private static String requestShort(Context c, String path, int timeoutMs) {
+        HttpURLConnection conn = null;
+        try {
+            conn = (HttpURLConnection) new URL(base(c) + path).openConnection();
+            conn.setConnectTimeout(timeoutMs);
+            conn.setReadTimeout(timeoutMs);
+            conn.setRequestMethod("GET");
+            int code = conn.getResponseCode();
+            if (code >= 500) return null;
+            return readAll(code >= 400 ? conn.getErrorStream() : conn.getInputStream());
+        } catch (Throwable t) {
+            return null;
+        } finally {
+            if (conn != null) conn.disconnect();
+        }
+    }
+
     private static String readAll(InputStream is) throws Exception {
         if (is == null) return "";
         return new String(readAllBytes(is), "UTF-8");

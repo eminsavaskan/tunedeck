@@ -9,4 +9,10 @@
     <string name="test_title">Test notification</string>
     <string name="test_text">If you see this, notifications work.</string>
     <string name="unreachable">computer unreachable</string>
+    <string name="off_title">Computer unreachable</string>
+    <string name="off_hint">Make sure you are on the same Wi-Fi and the bridge is running on the computer.</string>
+    <string name="retry">Retry</string>
+    <string name="save_try">Save &amp; try</string>
+    <string name="connecting">Connecting…</string>
+    <string name="action_stop">Stop</string>
 </resources>

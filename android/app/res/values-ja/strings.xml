@@ -9,4 +9,10 @@
     <string name="test_title">テスト通知</string>
     <string name="test_text">これが見えれば通知は動作しています。</string>
     <string name="unreachable">パソコンに接続できません</string>
+    <string name="off_title">パソコンに接続できません</string>
+    <string name="off_hint">同じ Wi-Fi に接続し、パソコンでブリッジが動作しているか確認してください。</string>
+    <string name="retry">再試行</string>
+    <string name="save_try">保存して再試行</string>
+    <string name="connecting">接続中…</string>
+    <string name="action_stop">停止</string>
 </resources>

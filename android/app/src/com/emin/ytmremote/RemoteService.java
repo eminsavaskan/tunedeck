@@ -124,13 +124,16 @@ public class RemoteService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         String cmd = intent == null ? null : intent.getStringExtra("cmd");
         if ("stop".equals(cmd)) {
+            Api.prefs(this).edit().putBoolean("user_stopped", true).apply();
+            Diag.log(this, "USER-STOP");
+            try { stopForeground(true); } catch (Throwable ignored) {}
             stopSelf();
             return START_NOT_STICKY;
         }
         if (cmd != null) {
             io.execute(() -> { doCmd(cmd); pause(800); refresh(); });
         }
-        return START_STICKY;
+        return START_NOT_STICKY;
     }
 
     @Override
@@ -328,6 +331,9 @@ public class RemoteService extends Service {
                 s.playing ? getString(R.string.action_pause) : getString(R.string.action_play), cmdPI("toggle", 12)).build());
         b.addAction(new Notification.Action.Builder(
                 Icon.createWithResource(this, R.drawable.ic_next), getString(R.string.action_next), cmdPI("next", 13)).build());
+        b.addAction(new Notification.Action.Builder(
+                Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
+                getString(R.string.action_stop), cmdPI("stop", 14)).build());
 
         if (plain) {
             // duz bildirim: medya karti gostermeyen cihazlarda kontrol yine elinizde olsun

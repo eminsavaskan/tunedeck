@@ -9,4 +9,10 @@
     <string name="test_title">Powiadomienie testowe</string>
     <string name="test_text">Jeśli to widzisz, powiadomienia działają.</string>
     <string name="unreachable">brak połączenia z komputerem</string>
+    <string name="off_title">Brak połączenia z komputerem</string>
+    <string name="off_hint">Upewnij się, że jesteś w tej samej sieci Wi-Fi i mostek działa na komputerze.</string>
+    <string name="retry">Spróbuj ponownie</string>
+    <string name="save_try">Zapisz i spróbuj</string>
+    <string name="connecting">Łączenie…</string>
+    <string name="action_stop">Zatrzymaj</string>
 </resources>

@@ -9,4 +9,10 @@
     <string name="test_title">Test bildirimi</string>
     <string name="test_text">Bunu görüyorsan bildirim sistemi çalışıyor.</string>
     <string name="unreachable">bilgisayara ulaşılamıyor</string>
+    <string name="off_title">Bilgisayara ulaşılamıyor</string>
+    <string name="off_hint">Aynı Wi-Fi\'da olduğundan ve bilgisayarda köprünün çalıştığından emin ol.</string>
+    <string name="retry">Tekrar dene</string>
+    <string name="save_try">Kaydet ve dene</string>
+    <string name="connecting">Bağlanıyor…</string>
+    <string name="action_stop">Kapat</string>
 </resources>

@@ -9,4 +9,10 @@
     <string name="test_title">Notifica di prova</string>
     <string name="test_text">Se vedi questo, le notifiche funzionano.</string>
     <string name="unreachable">computer non raggiungibile</string>
+    <string name="off_title">Computer non raggiungibile</string>
+    <string name="off_hint">Verifica di essere sulla stessa Wi-Fi e che il bridge sia attivo sul computer.</string>
+    <string name="retry">Riprova</string>
+    <string name="save_try">Salva e prova</string>
+    <string name="connecting">Connessione…</string>
+    <string name="action_stop">Interrompi</string>
 </resources>

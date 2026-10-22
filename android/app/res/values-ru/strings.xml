@@ -9,4 +9,10 @@
     <string name="test_title">Тестовое уведомление</string>
     <string name="test_text">Если вы это видите, уведомления работают.</string>
     <string name="unreachable">компьютер недоступен</string>
+    <string name="off_title">Компьютер недоступен</string>
+    <string name="off_hint">Убедитесь, что вы в той же Wi-Fi и мост запущен на компьютере.</string>
+    <string name="retry">Повторить</string>
+    <string name="save_try">Сохранить и повторить</string>
+    <string name="connecting">Подключение…</string>
+    <string name="action_stop">Остановить</string>
 </resources>

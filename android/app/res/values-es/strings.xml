@@ -9,4 +9,10 @@
     <string name="test_title">Notificación de prueba</string>
     <string name="test_text">Si ves esto, las notificaciones funcionan.</string>
     <string name="unreachable">ordenador no disponible</string>
+    <string name="off_title">Ordenador no disponible</string>
+    <string name="off_hint">Comprueba que estás en la misma Wi-Fi y que el puente se ejecuta en el ordenador.</string>
+    <string name="retry">Reintentar</string>
+    <string name="save_try">Guardar y probar</string>
+    <string name="connecting">Conectando…</string>
+    <string name="action_stop">Detener</string>
 </resources>

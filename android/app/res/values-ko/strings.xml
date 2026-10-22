@@ -9,4 +9,10 @@
     <string name="test_title">테스트 알림</string>
     <string name="test_text">이 알림이 보이면 정상입니다.</string>
     <string name="unreachable">컴퓨터에 연결할 수 없음</string>
+    <string name="off_title">컴퓨터에 연결할 수 없음</string>
+    <string name="off_hint">같은 Wi-Fi인지, 컴퓨터에서 브리지가 실행 중인지 확인하세요.</string>
+    <string name="retry">다시 시도</string>
+    <string name="save_try">저장 후 시도</string>
+    <string name="connecting">연결 중…</string>
+    <string name="action_stop">중지</string>
 </resources>
