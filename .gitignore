@@ -28,7 +28,7 @@ __pycache__/
 Thumbs.db
 desktop.ini
 .DS_Store
-tools/
+tools/platform-tools/
 qr.png
 telefon-qr.png
 ayarlar.png
