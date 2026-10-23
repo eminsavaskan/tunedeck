@@ -461,7 +461,7 @@ async def setup_page():
     url = base_url()
     return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>YT Music Remote — bağlan</title>
+<title>TuneDeck — bağlan</title>
 <style>
 body{{margin:0;min-height:100vh;display:grid;place-items:center;background:#08080b;color:#f2f2f5;
 font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-align:center;padding:28px}}
@@ -486,6 +486,21 @@ padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600">APK'yı ind
 <div style="margin-top:18px"><img src="/qr.png?u=apk" alt="APK QR"
 style="width:150px;height:150px;padding:8px;border-radius:14px;background:#fff"></div>
 <p style="font-size:11.5px;margin-top:6px;color:#6a6a78">QR'ı telefonla okut — APK doğrudan iner</p>
+
+<hr style="margin:26px 0;border:0;border-top:1px solid #26262f">
+<div style="text-align:left;max-width:420px;margin:0 auto">
+<p style="margin-bottom:10px"><b>İlk kurulum</b></p>
+<ol style="color:#b9b9c6;font-size:12.5px;line-height:1.7;padding-left:18px;margin:0">
+<li>Bilgisayarda YouTube Music kurulu ve giriş yapılmış olsun.</li>
+<li>Uygulamanın kısayoluna bir kez <code style="margin:0;padding:1px 5px;font-size:12px">--remote-debugging-port=9223</code>
+eklenmeli. Windows'ta <b>setup.bat</b> dosyasını çalıştırırsan bu ve geri kalanı kendiliğinden yapılır.</li>
+<li>Köprü çalışıyor olmalı (bu sayfa açıldığına göre çalışıyor).</li>
+<li>Telefon aynı Wi-Fi'da olsun, yukarıdaki QR'ı okutsun.</li>
+<li>Telefonda uygulama açılınca çalan şarkı görünür. Görünmüyorsa YouTube Music'i aç, tekrar dene.</li>
+</ol>
+<p style="font-size:11.5px;margin-top:12px;color:#6a6a78">
+Uygulamanın içinde de aynı rehber var: sağ üstteki &#8942; menüsü → Nasıl kurulur.</p>
+</div>
 </div></body></html>"""
 
 

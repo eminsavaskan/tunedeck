@@ -16,4 +16,25 @@
     <string name="connecting">Bağlanıyor…</string>
     <string name="action_stop">Kapat</string>
     <string name="upd_permission">Güncelleme kurulumuna izin ver</string>
+    <string name="tut_menu">Nasıl kurulur</string>
+    <string name="tut_title">Kurulum</string>
+    <string name="tut_body">1) Bilgisayarda YouTube Music kurulu olsun ve giriş yap.
+
+2) Uygulamanın kısayoluna bir kez --remote-debugging-port=9223 eklenmeli. Bilgisayarda setup.bat dosyasını çalıştırırsan bu ayar kendiliğinden yapılır.
+
+3) Köprüyü başlat: arka-plan.vbs, ya da terminalde python bridge.py.
+
+4) Telefon ve bilgisayar aynı Wi-Fi ağında olmalı.
+
+5) Aşağıdaki kutuya köprünün adresini yaz. Köprü açılırken bu adresi ekranda yazar, örneğin http://192.168.1.50:8777
+
+Hâlâ bağlanmıyorsa Windows güvenlik duvarında Python için özel ağ iznini kontrol et.</string>
+    <string name="menu_addr">Sunucu adresi</string>
+    <string name="menu_about">Hakkında</string>
+    <string name="about_body">TuneDeck %s
+
+Bilgisayardaki YouTube Music için telefon kumandası. Resmî değil, Google ile bağlantısı yok.
+
+github.com/eminsavaskan/tunedeck</string>
+    <string name="ok">Tamam</string>
 </resources>

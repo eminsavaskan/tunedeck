@@ -85,6 +85,9 @@ the app itself.
 
 ## Install on Windows (step by step)
 
+> **Shortcut:** run `setup.bat`. It installs the Python packages, adds the debug flag to your YouTube Music
+> shortcut, registers the bridge at login and starts it. The manual steps below are what it does.
+
 ### 1. Install a player
 
 Install the YouTube Music desktop app from the
@@ -273,6 +276,14 @@ Behaviour you should know:
 - Volume set from the phone is re-applied after a track change (YouTube Music resets its own volume).
 
 ---
+
+## First run
+
+The app carries its own setup guide. If it cannot reach the computer, it shows a native screen instead of
+a browser error: the bridge address, a retry button, and a menu (⋮) with **How to set up**, the address
+field and the version.
+
+The same guide is on `http://<computer-ip>:8777/setup` in a browser.
 
 ## Troubleshooting
 

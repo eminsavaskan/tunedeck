@@ -17,4 +17,25 @@
     <string name="action_stop">Stop</string>
     <string name="upd_permission">Allow this app to install updates</string>
     <string name="app_name" translatable="false">TuneDeck</string>
+    <string name="tut_menu">How to set up</string>
+    <string name="tut_title">Setting it up</string>
+    <string name="tut_body">1) Install YouTube Music on the computer and sign in.
+
+2) Add --remote-debugging-port=9223 to the app shortcut once. Run setup.bat on the computer and it does this for you.
+
+3) Start the bridge: arka-plan.vbs, or python bridge.py in a terminal.
+
+4) Phone and computer must be on the same Wi-Fi.
+
+5) Type the bridge address in the box below. The bridge prints it when it starts, for example http://192.168.1.50:8777
+
+If it still will not connect, allow Python through the Windows firewall on private networks.</string>
+    <string name="menu_addr">Server address</string>
+    <string name="menu_about">About</string>
+    <string name="about_body">TuneDeck %s
+
+Phone remote for YouTube Music on your computer. Unofficial, not affiliated with Google.
+
+github.com/eminsavaskan/tunedeck</string>
+    <string name="ok">OK</string>
 </resources>

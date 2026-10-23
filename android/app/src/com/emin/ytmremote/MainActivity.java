@@ -44,11 +44,14 @@ public class MainActivity extends Activity {
     private static final int RETRY_MS = 4000;
 
     private WebView web;
-    private LinearLayout overlay;
+    private FrameLayout overlay;
     private TextView oTitle, oSub;
     private ProgressBar oBar;
     private EditText oAddr;
     private Button oRetry, oSave;
+    private TextView oMenu;
+    private volatile boolean pageLoaded = false;
+    private static final int LOAD_TIMEOUT_MS = 7000;
 
     private final Handler h = new Handler(Looper.getMainLooper());
     private volatile boolean offline = false;
@@ -86,11 +89,18 @@ public class MainActivity extends Activity {
             @Override
             public void onPageStarted(WebView v, String url, android.graphics.Bitmap fav) {
                 lastLoadFailed = false;
+                pageLoaded = false;
+                h.removeCallbacks(loadTimeout);
+                h.postDelayed(loadTimeout, LOAD_TIMEOUT_MS);
             }
 
             @Override
             public void onPageFinished(WebView v, String url) {
-                if (!lastLoadFailed) hideOverlay();
+                h.removeCallbacks(loadTimeout);
+                if (!lastLoadFailed) {
+                    pageLoaded = true;
+                    hideOverlay();
+                }
             }
 
             @Override
@@ -129,17 +139,33 @@ public class MainActivity extends Activity {
         startRemoteService();
         askNotificationPermission();
         web.loadUrl(Api.base(this));
+        h.postDelayed(loadTimeout, LOAD_TIMEOUT_MS);
     }
 
+    /** Sayfa bu sure icinde yuklenmezse sonsuz spinner yerine baglanti ekranina gec. */
+    private final Runnable loadTimeout = new Runnable() {
+        @Override
+        public void run() {
+            if (!alive || pageLoaded) return;
+            lastLoadFailed = true;
+            showOverlay(false);
+            oAddr.setText(Api.base(MainActivity.this));
+            h.removeCallbacks(retryTask);
+            h.post(retryTask);
+        }
+    };
+
     // ------------------------------------------------------------------ baglanti ekrani
-    private LinearLayout buildOverlay() {
+    private FrameLayout buildOverlay() {
+        FrameLayout root = new FrameLayout(this);
+        root.setBackgroundColor(Color.parseColor("#030303"));
+        root.setClickable(true);
+
         LinearLayout box = new LinearLayout(this);
         box.setOrientation(LinearLayout.VERTICAL);
         box.setGravity(Gravity.CENTER);
         box.setPadding(dp(30), dp(24), dp(30), dp(24));
         box.setBackgroundColor(Color.parseColor("#030303"));
-        box.setClickable(true);
-        box.setFocusable(true);
 
         oTitle = new TextView(this);
         oTitle.setTextSize(21);
@@ -208,7 +234,57 @@ public class MainActivity extends Activity {
             showOverlay(true);
             reload();
         });
-        return box;
+        FrameLayout.LayoutParams center = new FrameLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        root.addView(box, center);
+
+        // sag ust: menu
+        oMenu = new TextView(this);
+        oMenu.setText("⋮");
+        oMenu.setTextSize(20);
+        oMenu.setTextColor(0xFFEDEDED);
+        oMenu.setGravity(Gravity.CENTER);
+        oMenu.setPadding(dp(10), dp(4), dp(10), dp(10));
+        FrameLayout.LayoutParams menuLp = new FrameLayout.LayoutParams(dp(48), dp(48),
+                Gravity.TOP | Gravity.END);
+        menuLp.topMargin = dp(6);
+        menuLp.rightMargin = dp(6);
+        root.addView(oMenu, menuLp);
+        oMenu.setOnClickListener(this::showMenu);
+        return root;
+    }
+
+    // ------------------------------------------------------------------ menu / rehber
+    private void showMenu(View anchor) {
+        android.widget.PopupMenu pm = new android.widget.PopupMenu(this, anchor);
+        pm.getMenu().add(0, 1, 0, getString(R.string.tut_menu));
+        pm.getMenu().add(0, 2, 1, getString(R.string.menu_addr));
+        pm.getMenu().add(0, 3, 2, getString(R.string.menu_about));
+        pm.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == 1) {
+                showTutorial();
+            } else if (item.getItemId() == 2) {
+                oAddr.setVisibility(View.VISIBLE);
+                oAddr.setText(Api.base(this));
+                oAddr.requestFocus();
+            } else {
+                new AlertDialog.Builder(this)
+                        .setTitle(R.string.menu_about)
+                        .setMessage(getString(R.string.about_body, Updater.myName(this)))
+                        .setPositiveButton(R.string.ok, null)
+                        .show();
+            }
+            return true;
+        });
+        pm.show();
+    }
+
+    private void showTutorial() {
+        new AlertDialog.Builder(this)
+                .setTitle(R.string.tut_title)
+                .setMessage(R.string.tut_body)
+                .setPositiveButton(R.string.ok, null)
+                .show();
     }
 
     private Button mkBtn(String text, boolean primary) {
@@ -256,6 +332,7 @@ public class MainActivity extends Activity {
 
     private void onConnectFailed() {
         lastLoadFailed = true;
+        h.removeCallbacks(loadTimeout);
         showOverlay(false);
         oAddr.setText(Api.base(this));
         h.removeCallbacks(retryTask);
@@ -293,7 +370,7 @@ public class MainActivity extends Activity {
                 o.put("server", Api.base(MainActivity.this));
                 o.put("notifMode", Api.prefs(MainActivity.this).getString("notif_mode", "media"));
                 o.put("serviceRunning", RemoteService.running);
-                o.put("version", "2.7");
+                o.put("version", "2.8");
                 o.put("sdk", Build.VERSION.SDK_INT);
                 o.put("os", Build.VERSION.RELEASE);
                 o.put("model", Build.MANUFACTURER + " " + Build.MODEL);
