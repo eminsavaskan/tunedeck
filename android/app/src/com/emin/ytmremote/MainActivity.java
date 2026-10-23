@@ -370,7 +370,7 @@ public class MainActivity extends Activity {
                 o.put("server", Api.base(MainActivity.this));
                 o.put("notifMode", Api.prefs(MainActivity.this).getString("notif_mode", "media"));
                 o.put("serviceRunning", RemoteService.running);
-                o.put("version", "2.8");
+                o.put("version", "2.9");
                 o.put("sdk", Build.VERSION.SDK_INT);
                 o.put("os", Build.VERSION.RELEASE);
                 o.put("model", Build.MANUFACTURER + " " + Build.MODEL);

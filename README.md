@@ -1,62 +1,156 @@
 # TuneDeck
 
-YouTube Music doesn't do Spotify Connect. You can't pick up your phone and pause whatever is playing on
-the computer, and people have been asking for it in the feedback form for years.
+Control YouTube Music on your computer from your phone. Play, pause, skip, volume, search and your
+playlists, without walking back to the desk.
 
-So I wrote one. The PC plays the music, the phone controls it over your home Wi-Fi: play and pause, next
-and previous, volume, scrubbing, search, playlists, your library. The Android app adds a media
-notification, lock screen controls and a home screen widget, so you can skip a track without unlocking
-the phone.
-
-No account linking, no cloud, no API keys. It drives the YouTube Music client you are already signed into,
-on your own machine, which is why your likes, history and recommendations stay intact.
-
-Unofficial and not affiliated with Google. It doesn't bypass DRM and doesn't download anything, but it
-does automate a Google service, so use your judgement. [Limitations](#limitations) is worth a read before
-you install it.
-
-**[Download the Android app](https://github.com/eminsavaskan/tunedeck/releases/latest)** ·
-[Install on Windows](#install-on-windows-step-by-step) ·
-[Set up your phone](#set-up-your-phone) ·
-[How it works](#how-it-works)
+YouTube Music has no Spotify Connect, so I built one. No account linking, no cloud, no API keys: your PC
+plays the music, your phone is the remote on the same Wi-Fi.
 
 <p align="center">
   <img src="docs/screenshot.png" width="300" alt="TuneDeck controlling YouTube Music from a phone">
 </p>
 
----
+**[Download for Windows](https://github.com/eminsavaskan/tunedeck/releases/latest/download/TuneDeck.exe)** ·
+[Android app](https://github.com/eminsavaskan/tunedeck/releases) ·
+[How it works](#how-it-works)
 
-## Contents
+Works with the YouTube Music desktop app or with the website open in Chrome, Brave or Edge.
 
-- [What you need](#what-you-need)
-- [How it works](#how-it-works)
-- [Install on Windows (step by step)](#install-on-windows-step-by-step)
-- [Install on Linux / macOS](#install-on-linux--macos)
-- [Set up your phone](#set-up-your-phone)
-- [Install the Android app (APK)](#install-the-android-app-apk)
-- [Daily use](#daily-use)
-- [Troubleshooting](#troubleshooting)
-- [FAQ](#faq)
-- [Configuration](#configuration)
-- [HTTP API](#http-api)
-- [Build the APK yourself](#build-the-apk-yourself)
-- [Limitations](#limitations)
-- [License](#license)
+Unofficial and not affiliated with Google. It does not bypass DRM or download anything, but it does
+automate a Google service, so use your judgement. [What it can't do](#what-it-cant-do) is worth a read.
 
----
+## What you get
 
-## What you need
+- Play, pause, previous, next, and a scrub bar that follows the track.
+- Volume control, and the level stays put when the song changes.
+- Search that plays what you pick, plus your playlists and library.
+- An Android app with a media notification, lock screen controls and a home screen widget.
+- 14 languages, including Turkish, German, Spanish, Arabic (right to left) and Japanese.
+- The phone finds the computer on its own; the app updates itself.
 
-| | |
+## Install on Windows
+
+You do not need Python, and there is nothing to compile.
+
+1. Download **TuneDeck.exe** and put it anywhere, the Desktop is fine.
+2. Double-click it. On the first run it sets everything up, starts in the background, and opens a page
+   in your browser with a QR code.
+3. Read the page: the QR is for your phone, and there is a button for the Android app.
+4. Tick "start when the computer starts" so it comes back after a reboot.
+
+That is it. It copies itself to `%LOCALAPPDATA%\TuneDeck`, adds the flag YouTube Music needs to the app
+shortcut, and registers itself at login. Delete the download afterwards if you like, the installed copy
+keeps running.
+
+Windows will warn that the file is from an unknown publisher, because the exe is not code-signed. Click
+More info, then Run anyway.
+
+## Your phone
+
+1. Join the same Wi-Fi as the computer.
+2. Scan the QR on the computer, or type the address it shows into your phone's browser.
+3. Add the page to your home screen if you want it to open full screen.
+
+For the notification, lock screen controls and widget, install the Android app: the same page has a
+download button and a second QR that installs it directly. Android will ask once for permission to install
+an app from your browser.
+
+More than one phone works, and they all control the same player.
+
+## Everyday use
+
+| I want to… | Do this |
 |---|---|
-| **Computer** | Windows 10/11, Linux or macOS. Plays the music. |
-| **Player** | The [YouTube Music desktop app](https://github.com/pear-devs/pear-desktop) (or any Chromium browser) |
-| **Python** | 3.10 or newer on the computer |
-| **Phone** | Any phone on the **same Wi-Fi** — nothing to install for the basic version |
-| **Optional** | Android 8+ phone for the notification / lock-screen / widget app |
+| Listen on the PC, control from the phone | start the bridge, open YouTube Music, open the app |
+| Stop everything | close YouTube Music, stop the bridge (`durdur.bat` / Ctrl+C) |
+| Keep the PC free of a console window | `arka-plan.vbs` |
+| Change the phone's language | gear icon → **Language** (14 languages) |
+| Control from a second phone | just open the same URL |
 
-You do **not** need: a Google API key, a developer account, root, a server, or an internet connection
-beyond what YouTube Music itself needs.
+Behaviour you should know:
+
+- If the player is **closed on the PC, it stays closed**. The phone shows "YouTube Music is closed on the
+  computer" with an **Open** button. Nothing starts behind your back.
+- If the phone loses Wi-Fi, the Android card disappears after ~9 seconds instead of hanging around.
+- Volume set from the phone is re-applied after a track change (YouTube Music resets its own volume).
+
+---
+
+## First run
+
+The app carries its own setup guide. If it cannot reach the computer, it shows a native screen instead of
+a browser error: the bridge address, a retry button, and a menu (⋮) with **How to set up**, the address
+field and the version.
+
+The same guide is on `http://<computer-ip>:8777/setup` in a browser.
+
+**Setup status** (Settings → Setup status) runs a live check and lists what is working and what is not:
+the bridge, whether YouTube Music is open, the remote control port, whether the account is signed in, and
+the Android app version. Green means ready, red means that part needs attention. `GET /api/check` returns
+the same data as JSON, and the `/setup` page shows it too.
+
+## If something goes wrong
+
+| Symptom | Cause | Fix |
+|---|---|---|
+| Phone cannot open the page | different network, AP isolation, firewall | same Wi-Fi? allow Python on private networks; get the PC's IP with `ipconfig` |
+| Page loads, but "computer unreachable" | bridge stopped | start `bridge.py` again |
+| "YouTube Music is closed on the computer" | player is not running | open the player, or tap **Open** |
+| "App is open but remote control is off" | player started **without** `--remote-debugging-port=9223` | quit it fully, start it from the patched shortcut |
+| `http://127.0.0.1:9223/json/version` shows nothing | same as above | fix the shortcut |
+| Search returns unrelated songs | YouTube Music's own search ranking | type more of the title; results are re-ranked against your query |
+| Volume jumps back | a track change reset it | it re-applies automatically; if not, set it again |
+| No notification / no lock-screen card | notification permission, battery optimisation, or OEM media settings | see [APK step 4–6](#install-the-android-app-apk) |
+| Widget does nothing | service stopped | open the app once; the widget needs the background service |
+| `Port 8777 already in use` | bridge already running | use the running one, or `YTM_PORT=8778 python bridge.py` |
+| Titles/artwork empty while music plays | YouTube Music was reloaded | wait a few seconds, state re-syncs automatically |
+
+Still stuck? Open the setup page (`/setup`) or check `bridge.log`. The bridge logs every failure.
+
+---
+
+## Questions
+
+**Does it work with the real music.youtube.com in Firefox?**
+No. Firefox speaks WebDriver BiDi, not the Chrome DevTools Protocol. Use Chrome, Brave, Edge or the
+desktop app.
+
+**Can the phone play the music instead of the PC?**
+No. YouTube Music has no "cast to another device" API, so the audio always comes from the machine that
+plays it. The phone is the remote.
+
+**Two people, two accounts?**
+One player = one account. Run two computers with two bridges (different ports) if you need that.
+
+**Is my Google password involved?**
+Never. The bridge talks to the already-logged-in player on your own computer. It has no Google credentials
+at all.
+
+**Is it safe to expose?**
+The bridge listens on your LAN only and has no cloud component. Anyone on your Wi-Fi can control the
+player. That is the point. If you don't want that, set a `token` (see [Configuration](#configuration)).
+
+**Will a YouTube Music update break it?**
+Possibly. Everything is driven through the page's DOM; a redesign can break selectors. Fixes are usually
+small. That is the cost of an app with no public API.
+
+---
+
+## What it can't do
+
+- **DOM driven.** Playback, search and navigation use YouTube Music's own elements (`#progress-bar`,
+  `.title`, `ytmusic-*`). A Google redesign can break it. Fixes are usually a few selectors.
+- **One player per bridge.** The phone remote controls the machine running `bridge.py`.
+- **Phone is the remote, not the player.** Audio always comes from the computer.
+- **Unofficial.** No DRM circumvention, no downloading, no API keys; it automates the client you are
+  already logged into. Automating a Google service can violate its terms. Your call.
+- **Debug-signed APK.** Fine for sideloading, not for a store.
+- **Some OEMs** (Samsung, Xiaomi, Huawei) hide media cards by default. The app cannot override a system
+  setting; the official YouTube Music app would be hidden the same way.
+
+## For developers
+
+Everything below is internals. You do not need any of it to use TuneDeck.
 
 ## How it works
 
@@ -83,103 +177,18 @@ the app itself.
 
 ---
 
-## Install on Windows
+## What you need
 
-**No Python needed.** One portable file:
-
-1. Download **`TuneDeck.exe`** from [Releases](https://github.com/eminsavaskan/tunedeck/releases/latest)
-   and put it anywhere (Desktop is fine).
-2. Double-click it. On the first run it adds the remote control flag to your YouTube Music shortcut,
-   starts in the background and opens `http://127.0.0.1:8777/setup` in your browser.
-3. Scan the QR code with your phone, or install the APK and open the app.
-4. Tick **start with Windows** on that page so it comes back after a reboot.
-
-Windows will warn that the file is from an unknown publisher, because the exe is not code-signed.
-More info, then Run anyway.
-
-**The manual way** (Linux, macOS, or if you would rather run the source): the steps below are exactly what
-the exe does.
-
-### 1. Install a player
-
-Install the YouTube Music desktop app from the
-[pear-desktop releases page](https://github.com/pear-devs/pear-desktop/releases), or use a Chromium
-browser (Chrome / Brave / Edge) instead.
-
-### 2. Install Python
-
-Download it from [python.org](https://www.python.org/downloads/) and **tick "Add python.exe to PATH"**
-on the first screen of the installer. Then check it in a terminal:
-
-```bash
-python --version
-```
-
-### 3. Get this project
-
-```bash
-git clone https://github.com/<your-user>/ytm-remote.git
-cd ytm-remote
-```
-
-No git? Use **Code → Download ZIP** on GitHub, then unzip it anywhere (e.g. `C:\ytm-remote`).
-
-### 4. Install the dependencies
-
-```bash
-python -m pip install -r requirements.txt
-```
-
-### 5. Give the player a debug port (once)
-
-This is the only fiddly step. The player must be started with `--remote-debugging-port=9223`.
-
-**Desktop app:** right-click its shortcut → **Properties** → in **Target** append the flag, keeping the
-quotes intact:
-
-```
-"C:\Users\you\AppData\Local\Programs\youtube-music\YouTube Music.exe" --remote-debugging-port=9223
-```
-
-Then close the player completely (also from the tray) and open it from that shortcut.
-
-**Browser instead of the app:** skip this step (see [Browser mode](#browser-mode)).
-
-Not sure it worked? `http://127.0.0.1:9223/json/version` should return JSON in the browser. If it does
-not, the player was started without the flag.
-
-### 6. Start the bridge
-
-```bash
-python bridge.py
-```
-
-It prints something like:
-
-```
-YT Music Remote  ->  http://192.168.1.50:8777
-```
-
-Leave this window open. When Windows asks about the firewall, **allow it on private networks**, otherwise
-your phone cannot connect.
-
-### 7. Start the player (any time)
-
-Open YouTube Music as usual. If it is closed, the phone shows an **Open** button instead of pretending to
-work.
-
-### Optional: run it in the background
-
-| File | What it does |
+| | |
 |---|---|
-| `arka-plan.vbs` | starts the bridge silently, no console window |
-| `baslat.vbs` | starts the bridge and opens the QR/setup page |
-| `durdur.bat` | stops the bridge |
+| **Computer** | Windows 10/11, Linux or macOS. Plays the music. |
+| **Player** | The [YouTube Music desktop app](https://github.com/pear-devs/pear-desktop) (or any Chromium browser) |
+| **Python** | 3.10 or newer on the computer |
+| **Phone** | Any phone on the **same Wi-Fi** — nothing to install for the basic version |
+| **Optional** | Android 8+ phone for the notification / lock-screen / widget app |
 
-To start the bridge automatically at login, press `Win+R`, type `shell:startup`, and put a shortcut to
-`arka-plan.vbs` in that folder.
-
----
+You do **not** need: a Google API key, a developer account, root, a server, or an internet connection
+beyond what YouTube Music itself needs.
 
 ## Install on Linux / macOS
 
@@ -201,18 +210,6 @@ For a normal browser, use the [browser mode](#browser-mode) setting instead. All
 your firewall (on Ubuntu: `sudo ufw allow 8777/tcp`).
 
 ---
-
-## Set up your phone
-
-1. Connect the phone to the **same Wi-Fi** as the computer. (Guest networks and "AP isolation" block this.)
-2. Open the URL the bridge printed, for example `http://192.168.1.50:8777`.
-3. Browser menu → **Add to home screen**. It now opens full-screen like an app.
-4. Point the phone at the computer and tap play. Done.
-
-The bridge also serves a QR page: open `http://<computer-ip>:8777/setup` on the computer and scan it with
-the phone.
-
-**Multiple phones work.** Every device that opens the URL controls the same player.
 
 ## Install the Android app (APK)
 
@@ -267,85 +264,6 @@ release. Every installed app then sees `versionCode 15 > 14` and offers the upda
 (or immediately: open Settings → Update and tap it).
 
 You don't need the bridge, the PC or a manual reinstall: one tap, once per release.
-
----
-
-## Daily use
-
-| I want to… | Do this |
-|---|---|
-| Listen on the PC, control from the phone | start the bridge, open YouTube Music, open the app |
-| Stop everything | close YouTube Music, stop the bridge (`durdur.bat` / Ctrl+C) |
-| Keep the PC free of a console window | `arka-plan.vbs` |
-| Change the phone's language | gear icon → **Language** (14 languages) |
-| Control from a second phone | just open the same URL |
-
-Behaviour you should know:
-
-- If the player is **closed on the PC, it stays closed**. The phone shows "YouTube Music is closed on the
-  computer" with an **Open** button. Nothing starts behind your back.
-- If the phone loses Wi-Fi, the Android card disappears after ~9 seconds instead of hanging around.
-- Volume set from the phone is re-applied after a track change (YouTube Music resets its own volume).
-
----
-
-## First run
-
-The app carries its own setup guide. If it cannot reach the computer, it shows a native screen instead of
-a browser error: the bridge address, a retry button, and a menu (⋮) with **How to set up**, the address
-field and the version.
-
-The same guide is on `http://<computer-ip>:8777/setup` in a browser.
-
-**Setup status** (Settings → Setup status) runs a live check and lists what is working and what is not:
-the bridge, whether YouTube Music is open, the remote control port, whether the account is signed in, and
-the Android app version. Green means ready, red means that part needs attention. `GET /api/check` returns
-the same data as JSON, and the `/setup` page shows it too.
-
-## Troubleshooting
-
-| Symptom | Cause | Fix |
-|---|---|---|
-| Phone cannot open the page | different network, AP isolation, firewall | same Wi-Fi? allow Python on private networks; get the PC's IP with `ipconfig` |
-| Page loads, but "computer unreachable" | bridge stopped | start `bridge.py` again |
-| "YouTube Music is closed on the computer" | player is not running | open the player, or tap **Open** |
-| "App is open but remote control is off" | player started **without** `--remote-debugging-port=9223` | quit it fully, start it from the patched shortcut |
-| `http://127.0.0.1:9223/json/version` shows nothing | same as above | fix the shortcut |
-| Search returns unrelated songs | YouTube Music's own search ranking | type more of the title; results are re-ranked against your query |
-| Volume jumps back | a track change reset it | it re-applies automatically; if not, set it again |
-| No notification / no lock-screen card | notification permission, battery optimisation, or OEM media settings | see [APK step 4–6](#install-the-android-app-apk) |
-| Widget does nothing | service stopped | open the app once; the widget needs the background service |
-| `Port 8777 already in use` | bridge already running | use the running one, or `YTM_PORT=8778 python bridge.py` |
-| Titles/artwork empty while music plays | YouTube Music was reloaded | wait a few seconds, state re-syncs automatically |
-
-Still stuck? Open the setup page (`/setup`) or check `bridge.log`. The bridge logs every failure.
-
----
-
-## FAQ
-
-**Does it work with the real music.youtube.com in Firefox?**
-No. Firefox speaks WebDriver BiDi, not the Chrome DevTools Protocol. Use Chrome, Brave, Edge or the
-desktop app.
-
-**Can the phone play the music instead of the PC?**
-No. YouTube Music has no "cast to another device" API, so the audio always comes from the machine that
-plays it. The phone is the remote.
-
-**Two people, two accounts?**
-One player = one account. Run two computers with two bridges (different ports) if you need that.
-
-**Is my Google password involved?**
-Never. The bridge talks to the already-logged-in player on your own computer. It has no Google credentials
-at all.
-
-**Is it safe to expose?**
-The bridge listens on your LAN only and has no cloud component. Anyone on your Wi-Fi can control the
-player. That is the point. If you don't want that, set a `token` (see [Configuration](#configuration)).
-
-**Will a YouTube Music update break it?**
-Possibly. Everything is driven through the page's DOM; a redesign can break selectors. Fixes are usually
-small. That is the cost of an app with no public API.
 
 ---
 
@@ -451,18 +369,6 @@ node tests/i18n_audit.js i18n.js # every language complete, placeholders, RTL li
 `api_test.py` exercises every endpoint with valid, empty, malformed, wrong-typed and hostile input
 (invalid JSON, 500-char queries, XSS payloads, path traversal, 16 parallel requests) and checks that
 nothing returns a 500 or hangs. Both suites exit non-zero on failure, so they can run in CI.
-
-## Limitations
-
-- **DOM driven.** Playback, search and navigation use YouTube Music's own elements (`#progress-bar`,
-  `.title`, `ytmusic-*`). A Google redesign can break it. Fixes are usually a few selectors.
-- **One player per bridge.** The phone remote controls the machine running `bridge.py`.
-- **Phone is the remote, not the player.** Audio always comes from the computer.
-- **Unofficial.** No DRM circumvention, no downloading, no API keys; it automates the client you are
-  already logged into. Automating a Google service can violate its terms. Your call.
-- **Debug-signed APK.** Fine for sideloading, not for a store.
-- **Some OEMs** (Samsung, Xiaomi, Huawei) hide media cards by default. The app cannot override a system
-  setting; the official YouTube Music app would be hidden the same way.
 
 ## Contributing
 

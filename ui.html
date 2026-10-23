@@ -332,14 +332,6 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
     <div class="grab"></div>
     <h3 data-i18n="settings">Ayarlar</h3>
 
-    <div class="row native" style="border-top:0;padding-bottom:4px">
-      <div class="lbl"><span data-i18n="server">Sunucu adresi</span><small data-i18n="server_sub">Bilgisayardaki köprünün adresi</small></div>
-    </div>
-    <div class="row native" style="border-top:0;padding-top:0">
-      <input id="srvInput" inputmode="url" autocomplete="off" spellcheck="false" placeholder="http://192.168.1.231:8777">
-      <button class="save" id="srvSave" data-i18n="save">Kaydet</button>
-    </div>
-
     <div class="row native"><div class="lbl"><span data-i18n="notif_view">Bildirim görünümü</span><small data-i18n="notif_view_sub">Kilit ekranı ve panel</small></div></div>
     <div class="seg native">
       <button id="segMedia" data-mode="media" data-i18n="media_card">Medya kartı</button>
@@ -347,23 +339,9 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
     </div>
     <div class="hint native" data-i18n="notif_hint">Medya kartı: kapak + süre çubuğu, kilit ekranı widget'ı.</div>
 
-    <button class="row native" id="rowTest">
-      <svg><use href="#i-bell"/></svg>
-      <div class="lbl"><span data-i18n="test_notif">Test bildirimi</span><small data-i18n="test_sub">Gönder</small></div>
-    </button>
-
     <button class="row native" id="rowBattery">
       <svg><use href="#i-battery"/></svg>
-      <div class="lbl"><span data-i18n="battery">Pil optimizasyonundan çıkar</span><small data-i18n="battery_sub">Servis uyutulmasın</small></div>
-    </button>
-
-    <button class="row native" id="rowDiag">
-      <svg><use href="#i-bug"/></svg>
-      <div class="lbl"><span data-i18n="diag">Bildirim teşhisi</span><small data-i18n="diag_sub">Durumu bilgisayara raporla</small></div>
-    </button>
-
-    <button class="row native" id="rowService">
-      <div class="lbl"><span data-i18n="service">Arka plan kontrolleri</span><small id="svcState" data-on="1">açık</small></div>
+      <div class="lbl"><span data-i18n="battery">Arka planda çalışmaya devam et</span><small data-i18n="battery_sub">Sistem uygulamayı uyutmasın</small></div>
     </button>
 
     <button class="row" id="rowCheck">
@@ -425,8 +403,6 @@ function applyStatic(){
     }
     sel.value = lang;
   }
-  const sv = $('svcState');
-  if(sv) sv.textContent = sv.dataset.on === '1' ? t('service_on') : t('service_off');
 }
 function setLang(l){
   if(!window.I18N[l]) return;
@@ -708,15 +684,12 @@ function nativeInfo(){
 function openSheet(){
   const i = hasNative ? nativeInfo() : {};
   document.querySelectorAll('#sheet .native').forEach(el => { el.style.display = hasNative ? '' : 'none'; });
-  if(!hasNative){ $('sheetFoot').textContent = 'TuneDeck · web'; }
+  if(!hasNative){ $('sheetFoot').textContent = 'TuneDeck'; }
   if(hasNative){
-  $('srvInput').value = i.server || '';
-  const mode = i.notifMode || 'media';
-  $('segMedia').classList.toggle('on', mode === 'media');
-  $('segPlain').classList.toggle('on', mode === 'plain');
-  $('svcState').dataset.on = i.serviceRunning ? '1' : '0';
-  $('svcState').textContent = i.serviceRunning ? t('service_on') : t('service_off');
-  $('sheetFoot').textContent = [i.model, 'v' + (i.version || ''), 'Android ' + (i.os || i.sdk || '')].filter(Boolean).join(' • ');
+    const mode = i.notifMode || 'media';
+    $('segMedia').classList.toggle('on', mode === 'media');
+    $('segPlain').classList.toggle('on', mode === 'plain');
+    $('sheetFoot').textContent = 'TuneDeck ' + (i.version ? 'v' + i.version : '');
   }
   $('sheet').classList.add('open');
   try { Native.setSheet(true); } catch(e){}
@@ -729,29 +702,13 @@ window.closeSheet = function(){
 
 $('sheet').addEventListener('click', e => { if(e.target.id === 'sheet') window.closeSheet(); });
 $('gear').onclick = openSheet;
-$('srvSave').onclick = () => {
-  const v = $('srvInput').value.trim();
-  if(!v){ toast(t('addr_empty')); return; }
-  if(hasNative) Native.setServer(v); else toast(t('native_only'));
-};
 document.querySelectorAll('#sheet .seg button').forEach(b => b.onclick = () => {
   if(!hasNative) return;
   Native.setNotifMode(b.dataset.mode);
   $('segMedia').classList.toggle('on', b.dataset.mode === 'media');
   $('segPlain').classList.toggle('on', b.dataset.mode === 'plain');
 });
-$('rowTest').onclick = () => { if(hasNative) Native.testNotification(); else toast(t('native_only')); };
 $('rowBattery').onclick = () => { if(hasNative) Native.batterySettings(); };
-$('rowDiag').onclick = () => { if(hasNative) Native.diag(); };
-$('rowService').onclick = () => {
-  if(!hasNative) return;
-  Native.toggleServiceAction();
-  setTimeout(() => {
-    const on = nativeInfo().serviceRunning;
-    $('svcState').dataset.on = on ? '1' : '0';
-    $('svcState').textContent = on ? t('service_on') : t('service_off');
-  }, 1200);
-};
 
 /* ---------------- uygulamayi telefondan ac ---------------- */
 $('launchBtn').onclick = async () => {
@@ -780,8 +737,9 @@ async function loadCheck(silent){
   return j;
 }
 function renderCheck(j){
-  const map = {bridge:'chk_bridge', player:'chk_player', login:'chk_login', remote:'chk_remote', apk:'chk_apk'};
-  $('chkList').innerHTML = (j.items||[]).map(it => `
+  const map = {bridge:'chk_bridge', player:'chk_player', login:'chk_login', apk:'chk_apk'};
+  const rows = (j.items||[]).filter(it => map[it.id]);
+  $('chkList').innerHTML = rows.map(it => `
     <div class="it">
       <span class="dot ${it.ok?'ok':'no'}">${it.ok?'✓':'!'}</span>
       <div><div class="nm">${E(t(map[it.id]||it.id))}</div>${it.detail?`<div class="dt">${E(it.detail)}</div>`:''}</div>

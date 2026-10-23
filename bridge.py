@@ -496,71 +496,135 @@ SETUP_EXTRA = r"""<div style="margin-top:16px">
 })();
 </script>"""
 
+SETUP_HTML = """<!doctype html><html lang="tr"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>TuneDeck</title>
+<style>
+:root{color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:#08080b;color:#f2f2f5;
+ font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:grid;place-items:center;padding:24px 18px}
+.wrap{width:100%;max-width:420px;text-align:center}
+.brand{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:6px}
+.brand img{width:38px;height:38px;border-radius:10px}
+.brand b{font-size:20px;letter-spacing:-.3px}
+p{color:#8b8b99;font-size:13.5px;line-height:1.6;margin:0 0 18px}
+.qr{background:#fff;padding:12px;border-radius:18px;display:inline-block}
+.qr img{display:block;width:212px;height:212px}
+.hint{font-size:12px;color:#6f6f7d;margin-top:10px}
+.card{margin-top:20px;background:#121217;border:1px solid #22222b;border-radius:16px;padding:16px;text-align:left}
+.card h3{margin:0 0 5px;font-size:14px}
+.card p{margin:0 0 12px;font-size:12px;color:#82828f;line-height:1.5}
+.btn{display:block;text-align:center;text-decoration:none;background:#7C3AED;color:#fff;font-weight:600;
+ font-size:14px;padding:12px;border-radius:12px}
+.st{display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-top:1px solid #1e1e26}
+.st:first-child{border-top:0;padding-top:2px}
+.dot{flex:none;width:16px;height:16px;border-radius:50%;color:#fff;font-size:11px;font-weight:700;
+ display:grid;place-items:center;margin-top:1px}
+.dot.ok{background:#1f9d55}.dot.no{background:#c02f3c}
+.st div{font-size:12.5px}
+.st small{display:block;color:#71717f;font-size:11px;margin-top:2px}
+.sum{margin-top:10px;font-size:12.5px;font-weight:700}
+.sum.ok{color:#2ecc71}.sum.no{color:#e0a800}
+details{margin-top:16px;text-align:left;font-size:12px;color:#7d7d8b}
+summary{cursor:pointer;color:#9a9aa8;outline:none}
+code{background:#17171d;border:1px solid #26262f;padding:2px 7px;border-radius:7px;font-size:12px;color:#d8d8e2}
+#copy{width:100%;margin-top:10px;background:#1d1d24;color:#c9c9d4;border:1px solid #2b2b35;
+ padding:9px;border-radius:10px;font-size:12px;cursor:pointer;display:none}
+</style></head><body><div class="wrap">
+
+<div class="brand"><img src="/icon-192.png" alt=""><b>TuneDeck</b></div>
+<p>Telefonunla bilgisayardaki YouTube Music'i kumanda et.</p>
+
+<div class="qr"><img src="/qr.png" alt="QR"></div>
+<div class="hint">Telefonun kamerasıyla okut.<br>Açılan sayfayı ana ekrana ekleyebilirsin.</div>
+<button id="copy">Adresi kopyala</button>
+
+<div class="card">
+  <h3>Telefon uygulaması</h3>
+  <p>Bildirim paneli, kilit ekranı ve widget için. Tarayıcıdan da çalışır, bu isteğe bağlı.</p>
+  <a class="btn" href="/app.apk">APK'yı indir</a>
+</div>
+
+<div class="card">
+  <h3>Durum</h3>
+  {{CHECK}}
+  <div class="sum {{SUMCLASS}}">{{SUM}}</div>
+</div>
+
+<details>
+  <summary>Teknik ayrıntılar</summary>
+  <p style="margin:10px 0 6px">Adres: <code>{{URL}}</code></p>
+  {{EXTRA}}
+</details>
+
+</div>
+<script>
+(function(){
+  var b=document.getElementById('copy');
+  if(!matchMedia('(pointer:coarse)').matches){ b.style.display='block'; }
+  b.onclick=function(){
+    navigator.clipboard.writeText('{{URL}}').then(function(){ b.textContent='Kopyalandı'; });
+  };
+})();
+</script>
+</body></html>"""
+
+
+SETUP_EXTRA = """<div style="margin-top:12px">
+  <label style="display:flex;gap:8px;align-items:center;font-size:12px;color:#c9c9d4;cursor:pointer">
+    <input type="checkbox" id="asChk" style="width:15px;height:15px;accent-color:#7C3AED">
+    Bilgisayar açılınca TuneDeck başlasın
+  </label>
+  <div id="asMsg" style="font-size:11px;color:#6a6a78;margin-top:6px"></div>
+  <button id="stopBtn" style="width:100%;margin-top:12px;background:#1d1d24;color:#c9c9d4;
+    border:1px solid #2b2b35;padding:9px;border-radius:10px;font-size:12px;cursor:pointer">TuneDeck'i kapat</button>
+</div>
+<script>
+(function(){
+  var chk=document.getElementById('asChk'), msg=document.getElementById('asMsg');
+  fetch('/api/autostart').then(function(r){return r.json()}).then(function(j){
+    chk.checked=!!j.on; if(j.on) msg.textContent='Açılışta başlıyor.';
+  }).catch(function(){});
+  chk.onchange=function(){
+    fetch('/api/autostart',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({on:chk.checked})}).then(function(r){return r.json()}).then(function(j){
+        msg.textContent = j.on ? 'Açılışta başlıyor.' : 'Açılışta başlamıyor.';
+      }).catch(function(){ msg.textContent='Değiştirilemedi.'; });
+  };
+  document.getElementById('stopBtn').onclick=function(){
+    if(!confirm('TuneDeck kapansın mı? Telefon bağlantısı kesilir.')) return;
+    fetch('/api/shutdown',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(function(){ document.querySelector('.wrap').innerHTML='<h1>TuneDeck kapandı</h1><p>Bu sekmeyi kapatabilirsin.</p>'; });
+  };
+})();
+</script>"""
+
+
+def render_setup(chk, url):
+    names = {"bridge": "Bağlantı", "player": "YouTube Music açık",
+             "login": "Hesap girişi", "apk": "Telefon uygulaması"}
+    rows = []
+    for i in chk["items"]:
+        if i["id"] not in names:
+            continue
+        dot = "ok" if i["ok"] else "no"
+        mark = "\u2713" if i["ok"] else "!"
+        detail = ("<small>%s</small>" % i["detail"]) if i.get("detail") else ""
+        rows.append('<div class="st"><span class="dot %s">%s</span><div>%s%s</div></div>'
+                    % (dot, mark, names[i["id"]], detail))
+    ok = chk["ready"]
+    return (SETUP_HTML
+            .replace("{{URL}}", url)
+            .replace("{{CHECK}}", "".join(rows))
+            .replace("{{SUMCLASS}}", "ok" if ok else "no")
+            .replace("{{SUM}}", "Her şey hazır" if ok else "Yukarıdaki kırmızı satıra bak")
+            .replace("{{EXTRA}}", SETUP_EXTRA))
+
+
 @app.get("/setup", response_class=HTMLResponse)
 async def setup_page():
-    url = base_url()
-    names = {"bridge": "Köprü çalışıyor", "player": "YouTube Music açık",
-             "remote": "Uzaktan kumanda portu", "login": "Hesap girişi", "apk": "Android uygulaması"}
-    chk = await check_items()
-    check_rows = "".join(
-        f'<div style="display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-top:1px solid #202028">'
-        f'<span style="flex:none;width:16px;height:16px;border-radius:50%;background:{"#1f9d55" if i["ok"] else "#c02f3c"};'
-        f'color:#fff;font-size:11px;text-align:center;line-height:16px">{"✓" if i["ok"] else "!"}</span>'
-        f'<div><div style="font-size:12.5px;color:#e9e9ee">{names.get(i["id"], i["id"])}</div>'
-        f'<div style="font-size:11px;color:#7c7c8a">{i["detail"]}</div></div></div>'
-        for i in chk["items"])
-    ok = chk["ready"]
-    check_rows += (f'<div style="margin-top:10px;font-size:12.5px;font-weight:600;color:{"#1f9d55" if ok else "#e0a800"}">'
-             f'{"Her şey hazır" if ok else "Eksik var: yukarıdaki kırmızı satırlara bak"}</div>')
-    return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>TuneDeck — bağlan</title>
-<style>
-body{{margin:0;min-height:100vh;display:grid;place-items:center;background:#08080b;color:#f2f2f5;
-font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;text-align:center;padding:28px}}
-h1{{font-size:20px;margin:0 0 6px}} p{{color:#8b8b99;font-size:13px;margin:0 0 22px;line-height:1.5}}
-img{{width:240px;height:240px;border-radius:16px;background:#fff;padding:10px}}
-code{{display:inline-block;margin-top:18px;background:#17171d;border:1px solid #26262f;padding:10px 14px;
-border-radius:10px;font-size:15px;color:#fff}}
-a{{display:inline-block;margin-top:16px;color:#ff2d55;font-size:13px;text-decoration:none}}
-</style></head><body><div>
-<h1>TuneDeck</h1>
-<p>Telefonun aynı Wi-Fi ağında olmalı.<br>QR'ı okut veya adresi tarayıcıya yaz, sonra<br>
-tarayıcı menüsünden <b>“Ana ekrana ekle”</b> de.</p>
-<img src="/qr.png" alt="QR">
-<div><code>{url}</code></div>
-<a href="/">Uygulamayı bu bilgisayarda aç →</a>
-
-<hr style="margin:26px 0;border:0;border-top:1px solid #26262f">
-<p style="margin-bottom:14px"><b>Android uygulaması (APK)</b><br>
-Bildirim paneli, kilit ekranı ve ana ekran widget'ı için.</p>
-<a href="/app.apk" style="display:inline-block;background:#ff2d55;color:#fff;text-decoration:none;
-padding:12px 22px;border-radius:12px;font-size:14px;font-weight:600">APK'yı indir</a>
-<div style="margin-top:18px"><img src="/qr.png?u=apk" alt="APK QR"
-style="width:150px;height:150px;padding:8px;border-radius:14px;background:#fff"></div>
-<p style="font-size:11.5px;margin-top:6px;color:#6a6a78">QR'ı telefonla okut — APK doğrudan iner</p>
-
-<hr style="margin:26px 0;border:0;border-top:1px solid #26262f">
-<div style="text-align:left;max-width:420px;margin:0 auto">
-<p style="margin-bottom:10px"><b>İlk kurulum</b></p>
-<ol style="color:#b9b9c6;font-size:12.5px;line-height:1.7;padding-left:18px;margin:0">
-<li>Bilgisayarda YouTube Music kurulu ve giriş yapılmış olsun.</li>
-<li>Uygulamanın kısayoluna bir kez <code style="margin:0;padding:1px 5px;font-size:12px">--remote-debugging-port=9223</code>
-eklenmeli. Windows'ta <b>setup.bat</b> dosyasını çalıştırırsan bu ve geri kalanı kendiliğinden yapılır.</li>
-<li>Köprü çalışıyor olmalı (bu sayfa açıldığına göre çalışıyor).</li>
-<li>Telefon aynı Wi-Fi'da olsun, yukarıdaki QR'ı okutsun.</li>
-<li>Telefonda uygulama açılınca çalan şarkı görünür. Görünmüyorsa YouTube Music'i aç, tekrar dene.</li>
-</ol>
-<p style="font-size:11.5px;margin-top:12px;color:#6a6a78">
-Uygulamanın içinde de aynı rehber var: sağ üstteki &#8942; menüsü → Nasıl kurulur.</p>
-
-{SETUP_EXTRA}
-
-<hr style="margin:22px 0;border:0;border-top:1px solid #26262f">
-<p style="margin-bottom:10px"><b>Durum</b></p>
-<div style="text-align:left">{check_rows}</div>
-</div>
-</div></body></html>"""
+    return render_setup(await check_items(), base_url())
 
 
 @app.get("/api/state")

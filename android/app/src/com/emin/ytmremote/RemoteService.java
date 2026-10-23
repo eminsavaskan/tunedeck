@@ -320,7 +320,9 @@ public class RemoteService extends Service {
                 .setVisibility(Notification.VISIBILITY_PUBLIC)
                 .setShowWhen(false)
                 .setOnlyAlertOnce(true)
-                .setOngoing(true)
+                .setOngoing(false)              // kaydirarak kapatilabilsin
+                .setAutoCancel(true)
+                .setDeleteIntent(cmdPI("stop", 15))   // kaydirinca servis de dursun
                 .setCategory(Notification.CATEGORY_TRANSPORT);
 
         if (artwork != null) b.setLargeIcon(artwork);
@@ -335,6 +337,7 @@ public class RemoteService extends Service {
         b.addAction(new Notification.Action.Builder(
                 Icon.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
                 getString(R.string.action_stop), cmdPI("stop", 14)).build());
+        b.setColor(0xFF7C3AED);
 
         if (plain) {
             // duz bildirim: medya karti gostermeyen cihazlarda kontrol yine elinizde olsun

@@ -372,3 +372,19 @@ Object.assign(window.I18N.ko, {"chk_title": "설정 상태", "chk_bridge": "브�
 Object.assign(window.I18N.az, {"chk_title": "Quraşdırma vəziyyəti", "chk_bridge": "Körpü işləyir", "chk_player": "YouTube Music açıqdır", "chk_login": "Hesaba girilib", "chk_remote": "Uzaqdan idarə portu", "chk_apk": "Android tətbiqi", "chk_ready": "Hər şey hazırdır", "chk_not_ready": "Çatışmayan var"});
 Object.assign(window.I18N.fr, {"chk_title": "État de l'installation", "chk_bridge": "Pont actif", "chk_player": "YouTube Music ouvert", "chk_login": "Connecté", "chk_remote": "Port de contrôle", "chk_apk": "Appli Android", "chk_ready": "Tout est prêt", "chk_not_ready": "Il manque quelque chose"});
 Object.assign(window.I18N.pt, {"chk_title": "Status da configuração", "chk_bridge": "Ponte ativa", "chk_player": "YouTube Music aberto", "chk_login": "Conectado", "chk_remote": "Porta de controle", "chk_apk": "App Android", "chk_ready": "Tudo pronto", "chk_not_ready": "Falta algo"});
+
+/* durum ekrani: sade etiketler */
+Object.assign(window.I18N.en, {chk_title:"Status", chk_bridge:"Connection"});
+Object.assign(window.I18N.tr, {chk_title:"Durum", chk_bridge:"Bağlantı"});
+Object.assign(window.I18N.de, {chk_title:"Status", chk_bridge:"Verbindung"});
+Object.assign(window.I18N.zh, {chk_title:"状态", chk_bridge:"连接"});
+Object.assign(window.I18N.ja, {chk_title:"状態", chk_bridge:"接続"});
+Object.assign(window.I18N.ar, {chk_title:"الحالة", chk_bridge:"الاتصال"});
+Object.assign(window.I18N.it, {chk_title:"Stato", chk_bridge:"Connessione"});
+Object.assign(window.I18N.pl, {chk_title:"Stan", chk_bridge:"Połączenie"});
+Object.assign(window.I18N.ru, {chk_title:"Состояние", chk_bridge:"Соединение"});
+Object.assign(window.I18N.es, {chk_title:"Estado", chk_bridge:"Conexión"});
+Object.assign(window.I18N.ko, {chk_title:"상태", chk_bridge:"연결"});
+Object.assign(window.I18N.az, {chk_title:"Vəziyyət", chk_bridge:"Bağlantı"});
+Object.assign(window.I18N.fr, {chk_title:"État", chk_bridge:"Connexion"});
+Object.assign(window.I18N.pt, {chk_title:"Status", chk_bridge:"Conexão"});
