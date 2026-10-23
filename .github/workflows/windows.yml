@@ -36,8 +36,10 @@ jobs:
       - name: Build exe
         run: |
           python -m PyInstaller --noconfirm --clean --onefile --windowed --name TuneDeck --icon icon.ico `
-            --add-data "ui.html;." --add-data "i18n.js;." --add-data "icon-192.png;." --add-data "icon-512.png;." `
-            --add-data "ytm-remote.apk;." --add-data "version.json;." --add-data "tools/fix-shortcut.ps1;tools" `
+            --add-data "$env:GITHUB_WORKSPACE/ui.html;." --add-data "$env:GITHUB_WORKSPACE/i18n.js;." `
+            --add-data "$env:GITHUB_WORKSPACE/icon-192.png;." --add-data "$env:GITHUB_WORKSPACE/icon-512.png;." `
+            --add-data "$env:GITHUB_WORKSPACE/ytm-remote.apk;." --add-data "$env:GITHUB_WORKSPACE/version.json;." `
+            --add-data "$env:GITHUB_WORKSPACE/tools/fix-shortcut.ps1;tools" `
             --distpath dist --workpath build_pyi --specpath build_pyi launcher.py
 
       - uses: actions/upload-artifact@v4
