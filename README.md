@@ -285,6 +285,11 @@ field and the version.
 
 The same guide is on `http://<computer-ip>:8777/setup` in a browser.
 
+**Setup status** (Settings → Setup status) runs a live check and lists what is working and what is not:
+the bridge, whether YouTube Music is open, the remote control port, whether the account is signed in, and
+the Android app version. Green means ready, red means that part needs attention. `GET /api/check` returns
+the same data as JSON, and the `/setup` page shows it too.
+
 ## Troubleshooting
 
 | Symptom | Cause | Fix |

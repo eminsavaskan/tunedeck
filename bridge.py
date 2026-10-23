@@ -459,6 +459,19 @@ async def index():
 @app.get("/setup", response_class=HTMLResponse)
 async def setup_page():
     url = base_url()
+    names = {"bridge": "Köprü çalışıyor", "player": "YouTube Music açık",
+             "remote": "Uzaktan kumanda portu", "login": "Hesap girişi", "apk": "Android uygulaması"}
+    chk = await check_items()
+    check_rows = "".join(
+        f'<div style="display:flex;gap:9px;align-items:flex-start;padding:8px 0;border-top:1px solid #202028">'
+        f'<span style="flex:none;width:16px;height:16px;border-radius:50%;background:{"#1f9d55" if i["ok"] else "#c02f3c"};'
+        f'color:#fff;font-size:11px;text-align:center;line-height:16px">{"✓" if i["ok"] else "!"}</span>'
+        f'<div><div style="font-size:12.5px;color:#e9e9ee">{names.get(i["id"], i["id"])}</div>'
+        f'<div style="font-size:11px;color:#7c7c8a">{i["detail"]}</div></div></div>'
+        for i in chk["items"])
+    ok = chk["ready"]
+    check_rows += (f'<div style="margin-top:10px;font-size:12.5px;font-weight:600;color:{"#1f9d55" if ok else "#e0a800"}">'
+             f'{"Her şey hazır" if ok else "Eksik var: yukarıdaki kırmızı satırlara bak"}</div>')
     return f"""<!doctype html><html lang="tr"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>TuneDeck — bağlan</title>
@@ -500,6 +513,10 @@ eklenmeli. Windows'ta <b>setup.bat</b> dosyasını çalıştırırsan bu ve geri
 </ol>
 <p style="font-size:11.5px;margin-top:12px;color:#6a6a78">
 Uygulamanın içinde de aynı rehber var: sağ üstteki &#8942; menüsü → Nasıl kurulur.</p>
+
+<hr style="margin:22px 0;border:0;border-top:1px solid #26262f">
+<p style="margin-bottom:10px"><b>Durum</b></p>
+<div style="text-align:left">{check_rows}</div>
 </div>
 </div></body></html>"""
 
@@ -747,6 +764,40 @@ async def api_launch(req: Request):
 @app.get("/i18n.js")
 async def i18n_js():
     return Response((HERE / "i18n.js").read_bytes(), media_type="application/javascript")
+
+
+async def check_items():
+    """Kurulumun hangi parcalari hazir? UI bunlari kendi diline cevirir."""
+    items = [{"id": "bridge", "ok": True, "detail": base_url()}]
+    up = False
+    try:
+        up = await asyncio.to_thread(cdp.browser_up)
+    except Exception:
+        up = False
+    items.append({"id": "player", "ok": bool(up), "detail": ""})
+    items.append({"id": "remote", "ok": bool(up), "detail": f"127.0.0.1:{DEBUG_PORT}"})
+    login, note = False, ""
+    if up:
+        try:
+            st = await read_state()
+            login = bool(st.get("logged_in"))
+            note = (st.get("title") or "")[:40]
+        except Exception:
+            pass
+    items.append({"id": "login", "ok": login, "detail": note})
+    ver = ""
+    try:
+        ver = "v" + str(json.loads((HERE / "version.json").read_text(encoding="utf-8")).get("version"))
+    except Exception:
+        pass
+    items.append({"id": "apk", "ok": (HERE / "ytm-remote.apk").exists(), "detail": ver})
+    ready = all(i["ok"] for i in items if i["id"] in ("bridge", "player", "remote", "login"))
+    return {"ok": True, "ready": ready, "items": items}
+
+
+@app.get("/api/check")
+async def api_check():
+    return await check_items()
 
 
 @app.get("/api/version")

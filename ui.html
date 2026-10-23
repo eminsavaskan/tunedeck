@@ -196,6 +196,23 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
   font-size:12.5px;font-weight:600}
 #sheet .seg button.on{background:#fff;color:#000}
 #sheet .hint{font-size:11.5px;color:#6e6e6e;padding:0 20px 12px;line-height:1.5}
+#chk{position:fixed;inset:0;z-index:30;background:#08080bee;display:none;padding:16px;overflow:auto}
+#chk.open{display:block}
+#chk .card{width:auto;max-width:440px;margin:6vh auto;background:#141419;border:1px solid #26262f;
+  border-radius:16px;padding:16px 18px}
+#chk h3{margin:0 0 4px;font-size:16px}
+#chk .x{float:right;background:none;color:#8a8a94;font-size:20px;line-height:1;padding:0 4px}
+#chk .it{display:flex;gap:10px;align-items:flex-start;padding:10px 0;border-top:1px solid #202028}
+#chk .it:first-of-type{border-top:0;margin-top:8px}
+#chk .dot{width:18px;height:18px;border-radius:50%;flex:none;color:#fff;font-size:11px;font-weight:700;
+  display:grid;place-items:center;margin-top:1px}
+#chk .dot.ok{background:#1f9d55}
+#chk .dot.no{background:#c02f3c}
+#chk .nm{font-size:13px}
+#chk .dt{font-size:11.5px;color:var(--muted);margin-top:2px;word-break:break-all}
+#chk .sum{margin-top:12px;font-size:12.5px;font-weight:700}
+#chk .sum.ok{color:#2ecc71}
+#chk .sum.no{color:#e0a800}
 #sheet .foot{text-align:center;font-size:11px;color:#5a5a5a;padding:14px 20px 0}
 #sheet .langsel{background:#282828;color:#fff;border:0;border-radius:8px;padding:9px 12px;font-size:13px;
   font-family:inherit;outline:0;max-width:58%}
@@ -219,6 +236,7 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
   <symbol id="i-gear" viewBox="0 0 24 24"><path d="M19.4 13a7.9 7.9 0 0 0 0-2l2-1.6-2-3.4-2.4 1a8 8 0 0 0-1.7-1L15 3H9l-.3 2.6a8 8 0 0 0-1.7 1l-2.4-1-2 3.4L4.6 11a7.9 7.9 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a8 8 0 0 0 1.7 1L9 21h6l.3-2.6a8 8 0 0 0 1.7-1l2.4 1 2-3.4zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/></symbol>
   <symbol id="i-bell" viewBox="0 0 24 24"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2zm6-6V11a6 6 0 0 0-5-5.9V4a1 1 0 1 0-2 0v1.1A6 6 0 0 0 6 11v5l-2 2v1h16v-1z"/></symbol>
   <symbol id="i-battery" viewBox="0 0 24 24"><path d="M16 4h-2V2H6v20h8v-2h2a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm-4 15H8V5h4z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm-1.2 14.3-3.5-3.5 1.5-1.5 2 2 5-5 1.5 1.5z"/></symbol>
   <symbol id="i-bug" viewBox="0 0 24 24"><path d="M20 8h-2.8a6 6 0 0 0-1.6-2.3l1.6-1.6-1.4-1.4-2 2A5.9 5.9 0 0 0 12 4a5.9 5.9 0 0 0-1.8.6l-2-2L6.8 4l1.6 1.6A6 6 0 0 0 6.8 8H4v2h2.1a7 7 0 0 0 0 2H4v2h2.8a6 6 0 0 0 10.4 0H20v-2h-2.1a7 7 0 0 0 0-2H20z"/></symbol>
 </svg>
 
@@ -301,6 +319,14 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
   <div class="pfoot" id="pfoot"></div>
 </div>
 
+<div id="chk">
+  <div class="card">
+    <button class="x" id="chkClose">&#10005;</button>
+    <h3 data-i18n="chk_title">Kurulum durumu</h3>
+    <div id="chkList"></div>
+  </div>
+</div>
+
 <div id="sheet">
   <div class="card">
     <div class="grab"></div>
@@ -338,6 +364,11 @@ svg.ic{width:24px;height:24px;fill:currentColor;display:block}
 
     <button class="row native" id="rowService">
       <div class="lbl"><span data-i18n="service">Arka plan kontrolleri</span><small id="svcState" data-on="1">açık</small></div>
+    </button>
+
+    <button class="row" id="rowCheck">
+      <svg><use href="#i-check"/></svg>
+      <div class="lbl"><span data-i18n="chk_title">Kurulum durumu</span><small id="chkState">—</small></div>
     </button>
 
     <button class="row native" id="rowUpd">
@@ -677,7 +708,7 @@ function nativeInfo(){
 function openSheet(){
   const i = hasNative ? nativeInfo() : {};
   document.querySelectorAll('#sheet .native').forEach(el => { el.style.display = hasNative ? '' : 'none'; });
-  if(!hasNative){ $('sheetFoot').textContent = 'YT Music Remote · web'; }
+  if(!hasNative){ $('sheetFoot').textContent = 'TuneDeck · web'; }
   if(hasNative){
   $('srvInput').value = i.server || '';
   const mode = i.notifMode || 'media';
@@ -738,6 +769,33 @@ $('launchBtn').onclick = async () => {
   setTimeout(poll, 2500);
 };
 
+/* ---------------- kurulum kontrolu ---------------- */
+let chkItems = null;
+async function loadCheck(silent){
+  const j = await api('/api/check');
+  chkItems = (j && j.items) || null;
+  const st = $('chkState');
+  if(st) st.textContent = chkItems ? (j.ready ? t('chk_ready') : t('chk_not_ready')) : '—';
+  if(!silent && chkItems) renderCheck(j);
+  return j;
+}
+function renderCheck(j){
+  const map = {bridge:'chk_bridge', player:'chk_player', login:'chk_login', remote:'chk_remote', apk:'chk_apk'};
+  $('chkList').innerHTML = (j.items||[]).map(it => `
+    <div class="it">
+      <span class="dot ${it.ok?'ok':'no'}">${it.ok?'✓':'!'}</span>
+      <div><div class="nm">${E(t(map[it.id]||it.id))}</div>${it.detail?`<div class="dt">${E(it.detail)}</div>`:''}</div>
+    </div>`).join('') +
+    `<div class="sum ${j.ready?'ok':'no'}">${j.ready?t('chk_ready'):t('chk_not_ready')}</div>`;
+}
+$('rowCheck').onclick = async () => {
+  $('chk').classList.add('open');
+  $('chkList').innerHTML = '<div class="it"><div class="nm">' + t('loading') + '</div></div>';
+  await loadCheck(false);
+};
+$('chkClose').onclick = () => $('chk').classList.remove('open');
+$('chk').addEventListener('click', e => { if(e.target.id === 'chk') $('chk').classList.remove('open'); });
+
 /* ---------------- guncelleme ---------------- */
 let updInfo = null;
 let updManual = false;
@@ -773,6 +831,8 @@ $('rowUpd').onclick = () => {
 if(hasNative){
   setTimeout(() => { try { Native.checkUpdate(); } catch(e){} }, 2500);
 }
+
+setTimeout(() => loadCheck(true), 1500);
 
 $('langSel').onchange = e => setLang(e.target.value);
 applyStatic();
