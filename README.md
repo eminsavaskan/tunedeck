@@ -36,7 +36,8 @@ You do not need Python, and there is nothing to compile.
 2. Double-click it. On the first run it sets everything up, starts in the background, and opens a page
    in your browser with a QR code.
 3. Read the page: the QR is for your phone, and there is a button for the Android app.
-4. Tick "start when the computer starts" so it comes back after a reboot.
+4. That is all. It already registered itself to start with Windows; the page has a checkbox if you would
+   rather it did not.
 
 That is it. It copies itself to `%LOCALAPPDATA%\TuneDeck`, adds the flag YouTube Music needs to the app
 shortcut, and registers itself at login. Delete the download afterwards if you like, the installed copy
