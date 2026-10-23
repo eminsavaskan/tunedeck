@@ -1,12 +1,16 @@
 """TuneDeck — masaüstü başlatıcı (PyInstaller ile tek .exe).
 
-Yaptığı iş:
-  1) Köprü zaten çalışıyorsa sadece /setup sayfasını açar.
-  2) İlk çalıştırmada YouTube Music kısayoluna uzaktan kumanda bayrağını ekler.
-  3) Köprüyü arka planda başlatır ve /setup sayfasını tarayıcıda açar.
-  4) Kapanana kadar (ya da /api/shutdown ile) çalışır.
+İlk çalıştırma:
+  1) Kendini %LOCALAPPDATA%\\TuneDeck\\ içine kopyalar (İndirilenler silinse de çalışsın).
+  2) YouTube Music kısayoluna uzaktan kumanda bayrağını ekler.
+  3) Kendini oturum açılışına kaydeder (sayfadan kapatılabilir).
+
+Her çalıştırma:
+  - Köprü zaten açıksa sessizce çıkar (çift başlatmada fazladan sekme açılmaz).
+  - Değilse köprüyü başlatır ve /setup sayfasını tarayıcıda açar.
 """
 import os
+import shutil
 import socket
 import subprocess
 import sys
@@ -17,13 +21,13 @@ from pathlib import Path
 
 PORT = 8777
 BASE = f"http://127.0.0.1:{PORT}"
+DATA = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "TuneDeck"
 
 
 def log(msg: str) -> None:
     try:
-        d = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "TuneDeck"
-        d.mkdir(parents=True, exist_ok=True)
-        with open(d / "launcher.log", "a", encoding="utf-8") as f:
+        DATA.mkdir(parents=True, exist_ok=True)
+        with open(DATA / "launcher.log", "a", encoding="utf-8") as f:
             f.write(time.strftime("%Y-%m-%d %H:%M:%S ") + msg + "\n")
     except Exception:
         pass
@@ -38,47 +42,101 @@ def port_open(port: int = PORT) -> bool:
         s.close()
 
 
+def frozen() -> bool:
+    return bool(getattr(sys, "frozen", False))
+
+
 def app_dir() -> Path:
-    return Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
+    return Path(sys.executable).resolve().parent if frozen() else Path(__file__).resolve().parent
 
 
 def resource(rel: str) -> Path:
-    base = Path(getattr(sys, "_MEIPASS", app_dir()))
-    return base / rel
+    return Path(getattr(sys, "_MEIPASS", app_dir())) / rel
 
 
-def first_run_shortcut() -> None:
-    """Bir kez: YouTube Music kisayoluna --remote-debugging-port=9223 ekle."""
-    if os.name != "nt":
+def open_page_once() -> None:
+    """Tarayıcıyı en fazla 60 saniyede bir aç (açılışta iki kez tetiklenirse tek sekme)."""
+    try:
+        stamp = DATA / ".last-open"
+        now = time.time()
+        if stamp.exists():
+            try:
+                if now - float(stamp.read_text(encoding="utf-8") or 0) < 60:
+                    return
+            except Exception:
+                pass
+        stamp.write_text(str(now), encoding="utf-8")
+    except Exception:
+        pass
+    try:
+        webbrowser.open(BASE + "/setup")
+    except Exception:
+        pass
+
+
+def install_copy() -> None:
+    """Kendini kalıcı bir yere kopyala."""
+    if not frozen():
         return
-    marker = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "TuneDeck" / ".shortcut-done"
+    src = Path(sys.executable).resolve()
+    try:
+        DATA.mkdir(parents=True, exist_ok=True)
+        dst = DATA / "TuneDeck.exe"
+        if src != dst and (not dst.exists() or dst.stat().st_size != src.stat().st_size):
+            shutil.copy2(src, dst)
+            log("kopyalandi: %s" % dst)
+    except Exception as e:
+        log("kopyalama hatasi: %r" % (e,))
+
+
+def first_run() -> None:
+    marker = DATA / ".installed"
     if marker.exists():
         return
+
     ps1 = resource("tools/fix-shortcut.ps1")
-    if not ps1.exists():
-        return
+    if ps1.exists() and os.name == "nt":
+        try:
+            subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(ps1)],
+                           capture_output=True, timeout=60, creationflags=0x08000000)
+            log("kisayol duzeltildi")
+        except Exception as e:
+            log("kisayol hatasi: %r" % (e,))
+
     try:
-        subprocess.run(["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", str(ps1)],
-                       capture_output=True, timeout=60, creationflags=0x08000000)
+        import winreg
+
+        target = DATA / "TuneDeck.exe"
+        if not target.exists():
+            target = Path(sys.executable).resolve()
+        key = r"Software\Microsoft\Windows\CurrentVersion\Run"
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key, 0, winreg.KEY_SET_VALUE) as k:
+            winreg.SetValueEx(k, "TuneDeck", 0, winreg.REG_SZ, '"%s"' % target)
+        log("acilisa eklendi: %s" % target)
+    except Exception as e:
+        log("acilis kaydi hatasi: %r" % (e,))
+
+    try:
         marker.parent.mkdir(parents=True, exist_ok=True)
         marker.write_text("ok", encoding="utf-8")
-        log("kisayol duzeltildi")
-    except Exception as e:
-        log("kisayol hatasi: %r" % (e,))
+    except Exception:
+        pass
 
 
 def main() -> None:
     if port_open():
-        log("kopru zaten calisiyor, sayfa aciliyor")
-        webbrowser.open(BASE + "/setup")
+        log("kopru zaten calisiyor")
+        open_page_once()
         return
 
-    sys.path.insert(0, str(resource(".")))
-    first_run_shortcut()
+    sys.path.insert(0, str(app_dir()))
+    install_copy()
 
-    import bridge  # noqa: E402  (paket icinden)
+    import bridge  # noqa: E402
 
+    first_run()
     threading.Thread(target=bridge.start_server, daemon=True).start()
+
     for _ in range(60):
         time.sleep(0.2)
         if port_open():
@@ -88,10 +146,7 @@ def main() -> None:
         return
 
     log("kopru hazir: " + BASE)
-    try:
-        webbrowser.open(BASE + "/setup")
-    except Exception:
-        pass
+    open_page_once()
 
     while True:
         time.sleep(3600)
@@ -102,5 +157,6 @@ if __name__ == "__main__":
         main()
     except Exception:
         import traceback
+
         log("COKME: " + traceback.format_exc()[-1500:])
         raise
