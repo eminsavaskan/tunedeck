@@ -1,7 +1,7 @@
 name: windows-exe
 
-# Tag push -> build the portable TuneDeck.exe and attach it to the release.
-# Users then install nothing: download the exe, double-click it.
+# Tag push -> build the portable TuneDeck.exe and attach it to that release.
+# Users install nothing: download the exe, double-click it.
 
 on:
   push:
@@ -20,27 +20,23 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Dependencies
+      # The apk job runs in parallel; wait for its asset to appear.
+      - name: Fetch the APK from the release
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          python -m pip install --upgrade pip
-          python -m pip install -r requirements.txt pyinstaller pillow
-
-      - name: Icon
-        run: |
-          python -c "from PIL import Image; im=Image.open('icon-512.png').convert('RGBA'); im.resize((256,256)).save('icon.ico', sizes=[(16,16),(32,32),(48,48),(256,256)])"
-
-      - name: Version metadata
-        run: |
-          python -c "import re,json;m=open('android/app/AndroidManifest.xml',encoding='utf-8').read();v=re.search(r'versionName=.([0-9.]+).',m).group(1);c=int(re.search(r'versionCode=.(\d+).',m).group(1));json.dump({'version':v,'code':c,'apk':'/app.apk'},open('version.json','w',encoding='utf-8'))"
+          for ($i = 0; $i -lt 10; $i++) {
+            gh release download "${{ github.ref_name }}" -p ytm-remote.apk -D . --clobber 2>$null
+            if (Test-Path ytm-remote.apk) { Write-Host "APK indirildi"; break }
+            Write-Host "APK henuz yok, 20 sn sonra tekrar"
+            Start-Sleep -Seconds 20
+          }
 
       - name: Build exe
-        run: |
-          python -m PyInstaller --noconfirm --clean --onefile --windowed --name TuneDeck --icon icon.ico `
-            --add-data "$env:GITHUB_WORKSPACE/ui.html;." --add-data "$env:GITHUB_WORKSPACE/i18n.js;." `
-            --add-data "$env:GITHUB_WORKSPACE/icon-192.png;." --add-data "$env:GITHUB_WORKSPACE/icon-512.png;." `
-            --add-data "$env:GITHUB_WORKSPACE/ytm-remote.apk;." --add-data "$env:GITHUB_WORKSPACE/version.json;." `
-            --add-data "$env:GITHUB_WORKSPACE/tools/fix-shortcut.ps1;tools" `
-            --distpath dist --workpath build_pyi --specpath build_pyi launcher.py
+        shell: pwsh
+        run: pwsh -File tools/build-exe.ps1
 
       - uses: actions/upload-artifact@v4
         with:
@@ -49,6 +45,7 @@ jobs:
 
       - name: Attach to release
         if: startsWith(github.ref, 'refs/tags/')
+        shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ github.ref_name }}" dist/TuneDeck.exe --clobber
