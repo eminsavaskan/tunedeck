@@ -36,7 +36,8 @@ jobs:
 
       - name: Build exe
         shell: pwsh
-        run: pwsh -File tools/build-exe.ps1
+        run: |
+          & "$env:GITHUB_WORKSPACE/tools/build-exe.ps1"
 
       - uses: actions/upload-artifact@v4
         with:
