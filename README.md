@@ -83,10 +83,22 @@ the app itself.
 
 ---
 
-## Install on Windows (step by step)
+## Install on Windows
 
-> **Shortcut:** run `setup.bat`. It installs the Python packages, adds the debug flag to your YouTube Music
-> shortcut, registers the bridge at login and starts it. The manual steps below are what it does.
+**No Python needed.** One portable file:
+
+1. Download **`TuneDeck.exe`** from [Releases](https://github.com/eminsavaskan/tunedeck/releases/latest)
+   and put it anywhere (Desktop is fine).
+2. Double-click it. On the first run it adds the remote control flag to your YouTube Music shortcut,
+   starts in the background and opens `http://127.0.0.1:8777/setup` in your browser.
+3. Scan the QR code with your phone, or install the APK and open the app.
+4. Tick **start with Windows** on that page so it comes back after a reboot.
+
+Windows will warn that the file is from an unknown publisher, because the exe is not code-signed.
+More info, then Run anyway.
+
+**The manual way** (Linux, macOS, or if you would rather run the source): the steps below are exactly what
+the exe does.
 
 ### 1. Install a player
 

@@ -22,7 +22,17 @@ from fastapi.responses import HTMLResponse, JSONResponse, Response, PlainTextRes
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from cdp import CDP
 
-HERE = Path(__file__).resolve().parent
+FROZEN = bool(getattr(sys, "frozen", False))
+# yazilabilir dosyalar (settings.json, log): exe yaninda
+HERE = Path(sys.executable).resolve().parent if FROZEN else Path(__file__).resolve().parent
+# salt okunur varliklar (ui.html, ikonlar, apk): paket icinde
+ASSET = Path(getattr(sys, "_MEIPASS", HERE))
+
+
+def _asset(name):
+    """Exe yaninda ayni adla dosya varsa onu kullan (apk/version guncellenebilsin)."""
+    p = HERE / name
+    return p if p.exists() else ASSET / name
 
 # pythonw.exe ile calisirken stdout/stderr NULL olur; loglamayi dosyaya yonlendir
 if sys.stdout is None or sys.stderr is None:
@@ -448,13 +458,43 @@ async def _unhandled(request: Request, exc: Exception):
 
 @app.get("/", response_class=HTMLResponse)
 async def index():
-    html = (HERE / "ui.html").read_text(encoding="utf-8")
+    html = (ASSET / "ui.html").read_text(encoding="utf-8")
     tok = _token()
     if tok:
         inject = "<script>window.__TOKEN__=" + json.dumps(tok) + ";</script>"
         html = html.replace('<script src="/i18n.js"></script>', inject + '<script src="/i18n.js"></script>', 1)
     return html
 
+
+SETUP_EXTRA = r"""<div style="margin-top:16px">
+  <label style="display:flex;gap:8px;align-items:center;font-size:12.5px;color:#c9c9d4;cursor:pointer">
+    <input type="checkbox" id="asChk" style="width:16px;height:16px;accent-color:#7C3AED">
+    Bilgisayar açılınca TuneDeck kendiliğinden başlasın
+  </label>
+  <div id="asMsg" style="font-size:11px;color:#6a6a78;margin-top:6px"></div>
+  <button id="stopBtn" style="margin-top:14px;background:#1c1c22;color:#c9c9d4;border:1px solid #2a2a33;
+    padding:8px 14px;border-radius:10px;font-size:12px;cursor:pointer">Köprüyü kapat</button>
+</div>
+<script>
+(function(){
+  var chk=document.getElementById('asChk'), msg=document.getElementById('asMsg');
+  fetch('/api/autostart').then(function(r){return r.json()}).then(function(j){
+    chk.checked = !!j.on;
+    msg.textContent = j.on ? ('Kayıtlı: ' + (j.target||'')) : '';
+  }).catch(function(){});
+  chk.onchange = function(){
+    fetch('/api/autostart',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({on:chk.checked})}).then(function(r){return r.json()}).then(function(j){
+        msg.textContent = j.on ? 'Açık. Bilgisayar açılınca başlar.' : 'Kapalı.';
+      }).catch(function(){ msg.textContent='Değiştirilemedi'; });
+  };
+  document.getElementById('stopBtn').onclick = function(){
+    if(!confirm('Köprü kapansın mı? Telefon bağlantısı kesilir.')) return;
+    fetch('/api/shutdown',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+      .then(function(){ document.body.innerHTML='<h1>TuneDeck kapandı</h1><p>Bu sekmeyi kapatabilirsin.</p>'; });
+  };
+})();
+</script>"""
 
 @app.get("/setup", response_class=HTMLResponse)
 async def setup_page():
@@ -513,6 +553,8 @@ eklenmeli. Windows'ta <b>setup.bat</b> dosyasını çalıştırırsan bu ve geri
 </ol>
 <p style="font-size:11.5px;margin-top:12px;color:#6a6a78">
 Uygulamanın içinde de aynı rehber var: sağ üstteki &#8942; menüsü → Nasıl kurulur.</p>
+
+{SETUP_EXTRA}
 
 <hr style="margin:22px 0;border:0;border-top:1px solid #26262f">
 <p style="margin-bottom:10px"><b>Durum</b></p>
@@ -655,7 +697,7 @@ async def api_play(req: Request):
 
 @app.get("/app.apk")
 async def app_apk():
-    f = HERE / "ytm-remote.apk"
+    f = _asset("ytm-remote.apk")
     if not f.exists():
         return JSONResponse({"ok": False, "error": "APK henuz derlenmemis"}, status_code=404)
     return Response(f.read_bytes(), media_type="application/vnd.android.package-archive",
@@ -703,12 +745,12 @@ self.addEventListener('fetch', e => {
 
 @app.get("/icon-192.png")
 async def icon192():
-    return Response((HERE / "icon-192.png").read_bytes(), media_type="image/png")
+    return Response((ASSET / "icon-192.png").read_bytes(), media_type="image/png")
 
 
 @app.get("/icon-512.png")
 async def icon512():
-    return Response((HERE / "icon-512.png").read_bytes(), media_type="image/png")
+    return Response((ASSET / "icon-512.png").read_bytes(), media_type="image/png")
 
 
 @app.get("/qr.png")
@@ -763,7 +805,7 @@ async def api_launch(req: Request):
 
 @app.get("/i18n.js")
 async def i18n_js():
-    return Response((HERE / "i18n.js").read_bytes(), media_type="application/javascript")
+    return Response((ASSET / "i18n.js").read_bytes(), media_type="application/javascript")
 
 
 async def check_items():
@@ -787,12 +829,69 @@ async def check_items():
     items.append({"id": "login", "ok": login, "detail": note})
     ver = ""
     try:
-        ver = "v" + str(json.loads((HERE / "version.json").read_text(encoding="utf-8")).get("version"))
+        ver = "v" + str(json.loads(_asset("version.json").read_text(encoding="utf-8")).get("version"))
     except Exception:
         pass
-    items.append({"id": "apk", "ok": (HERE / "ytm-remote.apk").exists(), "detail": ver})
+    items.append({"id": "apk", "ok": _asset("ytm-remote.apk").exists(), "detail": ver})
     ready = all(i["ok"] for i in items if i["id"] in ("bridge", "player", "remote", "login"))
     return {"ok": True, "ready": ready, "items": items}
+
+
+@app.post("/api/shutdown")
+async def api_shutdown():
+    async def _bye():
+        await asyncio.sleep(0.4)
+        os._exit(0)
+    asyncio.create_task(_bye())
+    return {"ok": True}
+
+
+def _self_path():
+    return str(Path(sys.executable).resolve()) if FROZEN else str(HERE / "arka-plan.vbs")
+
+
+def _autostart_on():
+    if os.name != "nt":
+        return False
+    import winreg
+    try:
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER,
+                            r"Software\Microsoft\Windows\CurrentVersion\Run") as k:
+            winreg.QueryValueEx(k, "TuneDeck")
+            return True
+    except OSError:
+        return False
+
+
+def _autostart_set(on):
+    if os.name != "nt":
+        raise RuntimeError("sadece Windows")
+    import winreg
+    key = r"Software\Microsoft\Windows\CurrentVersion\Run"
+    with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key, 0, winreg.KEY_SET_VALUE) as k:
+        if on:
+            cmd = ('"%s"' % _self_path()) if FROZEN else ('wscript.exe "%s"' % (HERE / "arka-plan.vbs"))
+            winreg.SetValueEx(k, "TuneDeck", 0, winreg.REG_SZ, cmd)
+        else:
+            try:
+                winreg.DeleteValue(k, "TuneDeck")
+            except OSError:
+                pass
+
+
+@app.get("/api/autostart")
+async def api_autostart_get():
+    return {"ok": True, "on": _autostart_on(), "target": _self_path()}
+
+
+@app.post("/api/autostart")
+async def api_autostart_set(req: Request):
+    body = await jbody(req) or {}
+    try:
+        _autostart_set(bool(body.get("on")))
+        return {"ok": True, "on": _autostart_on()}
+    except Exception as e:
+        return {"ok": False, "error": str(e)[:120], "on": _autostart_on()}
 
 
 @app.get("/api/check")
@@ -803,11 +902,11 @@ async def api_check():
 @app.get("/api/version")
 async def api_version():
     """Telefondaki uygulamanin kendini guncelleyebilmesi icin APK surum bilgisi."""
-    apk = HERE / "ytm-remote.apk"
+    apk = _asset("ytm-remote.apk")
     if not apk.exists():
         return {"ok": False, "error": "APK bulunamadi"}
     meta = {}
-    f = HERE / "version.json"
+    f = _asset("version.json")
     if not f.exists():
         f = HERE / "apk-version.json"
     if f.exists():
@@ -1152,6 +1251,22 @@ async def api_list(req: Request):
                 "items": items, "state": await read_state()}
     except Exception as e:
         return {"ok": False, "error": str(e)[:160], "items": []}
+
+
+def start_server():
+    """Kopruyu calistirir (bloklayan cagri)."""
+    uvicorn.run(app, host="0.0.0.0", port=PORT, log_level="warning")
+
+
+def port_busy():
+    s_ = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        s_.bind(("0.0.0.0", PORT))
+        return False
+    except OSError:
+        return True
+    finally:
+        s_.close()
 
 
 if __name__ == "__main__":

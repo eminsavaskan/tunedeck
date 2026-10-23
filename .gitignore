@@ -39,3 +39,7 @@ android/build/
 *.idsig
 apk-version.json
 version.json
+dist/
+build_pyi/
+TuneDeck.exe
+icon.ico
