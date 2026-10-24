@@ -22,6 +22,7 @@ from pathlib import Path
 PORT = 8777
 BASE = f"http://127.0.0.1:{PORT}"
 DATA = Path(os.environ.get("LOCALAPPDATA", str(Path.home()))) / "TuneDeck"
+SILENT = "--silent" in sys.argv          # oturum acilisinda: sayfa acma
 
 
 def log(msg: str) -> None:
@@ -111,7 +112,7 @@ def first_run() -> None:
             target = Path(sys.executable).resolve()
         key = r"Software\Microsoft\Windows\CurrentVersion\Run"
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key, 0, winreg.KEY_SET_VALUE) as k:
-            winreg.SetValueEx(k, "TuneDeck", 0, winreg.REG_SZ, '"%s"' % target)
+            winreg.SetValueEx(k, "TuneDeck", 0, winreg.REG_SZ, '"%s" --silent' % target)
         log("acilisa eklendi: %s" % target)
     except Exception as e:
         log("acilis kaydi hatasi: %r" % (e,))
@@ -126,7 +127,8 @@ def first_run() -> None:
 def main() -> None:
     if port_open():
         log("kopru zaten calisiyor")
-        open_page_once()
+        if not SILENT:
+            open_page_once()
         return
 
     sys.path.insert(0, str(app_dir()))
@@ -146,7 +148,8 @@ def main() -> None:
         return
 
     log("kopru hazir: " + BASE)
-    open_page_once()
+    if not SILENT:
+        open_page_once()
 
     while True:
         time.sleep(3600)

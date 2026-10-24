@@ -531,6 +531,10 @@ summary{cursor:pointer;color:#9a9aa8;outline:none}
 code{background:#17171d;border:1px solid #26262f;padding:2px 7px;border-radius:7px;font-size:12px;color:#d8d8e2}
 #copy{width:100%;margin-top:10px;background:#1d1d24;color:#c9c9d4;border:1px solid #2b2b35;
  padding:9px;border-radius:10px;font-size:12px;cursor:pointer;display:none}
+.tg{display:flex;gap:10px;align-items:flex-start;cursor:pointer}
+.tg input{width:17px;height:17px;accent-color:#7C3AED;margin-top:1px;flex:none}
+.tg b{font-size:13px;font-weight:600;display:block}
+.tg span{display:block;font-size:11.5px;color:#82828f;margin-top:3px;line-height:1.45}
 </style></head><body><div class="wrap">
 
 <div class="brand"><img src="/icon-192.png" alt=""><b>TuneDeck</b></div>
@@ -544,6 +548,15 @@ code{background:#17171d;border:1px solid #26262f;padding:2px 7px;border-radius:7
   <h3>Telefon uygulaması</h3>
   <p>Bildirim paneli, kilit ekranı ve widget için. Tarayıcıdan da çalışır, bu isteğe bağlı.</p>
   <a class="btn" href="/app.apk">APK'yı indir</a>
+</div>
+
+<div class="card">
+  <label class="tg">
+    <input type="checkbox" id="asChk">
+    <div><b>Bilgisayar açılınca arka planda başlasın</b>
+    <span>Telefon istediğin an bağlanabilsin diye. İstemezsen kapat, TuneDeck sadece elle açtığında çalışır.</span></div>
+  </label>
+  <div id="asMsg" style="font-size:11px;color:#6a6a78;margin-top:8px"></div>
 </div>
 
 <div class="card">
@@ -566,22 +579,6 @@ code{background:#17171d;border:1px solid #26262f;padding:2px 7px;border-radius:7
   b.onclick=function(){
     navigator.clipboard.writeText('{{URL}}').then(function(){ b.textContent='Kopyalandı'; });
   };
-})();
-</script>
-</body></html>"""
-
-
-SETUP_EXTRA = """<div style="margin-top:12px">
-  <label style="display:flex;gap:8px;align-items:center;font-size:12px;color:#c9c9d4;cursor:pointer">
-    <input type="checkbox" id="asChk" style="width:15px;height:15px;accent-color:#7C3AED">
-    Bilgisayar açılınca TuneDeck başlasın
-  </label>
-  <div id="asMsg" style="font-size:11px;color:#6a6a78;margin-top:6px"></div>
-  <button id="stopBtn" style="width:100%;margin-top:12px;background:#1d1d24;color:#c9c9d4;
-    border:1px solid #2b2b35;padding:9px;border-radius:10px;font-size:12px;cursor:pointer">TuneDeck'i kapat</button>
-</div>
-<script>
-(function(){
   var chk=document.getElementById('asChk'), msg=document.getElementById('asMsg');
   fetch('/api/autostart').then(function(r){return r.json()}).then(function(j){
     chk.checked=!!j.on; if(j.on) msg.textContent='Açılışta başlıyor.';
@@ -592,6 +589,15 @@ SETUP_EXTRA = """<div style="margin-top:12px">
         msg.textContent = j.on ? 'Açılışta başlıyor.' : 'Açılışta başlamıyor.';
       }).catch(function(){ msg.textContent='Değiştirilemedi.'; });
   };
+})();
+</script>
+</body></html>"""
+
+
+SETUP_EXTRA = """<button id="stopBtn" style="width:100%;margin-top:12px;background:#1d1d24;color:#c9c9d4;
+    border:1px solid #2b2b35;padding:9px;border-radius:10px;font-size:12px;cursor:pointer">TuneDeck'i kapat</button>
+<script>
+(function(){
   document.getElementById('stopBtn').onclick=function(){
     if(!confirm('TuneDeck kapansın mı? Telefon bağlantısı kesilir.')) return;
     fetch('/api/shutdown',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
